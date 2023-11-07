@@ -1,3 +1,4 @@
+package superres;
 import base.BaseTester;
 import hl.objml.opencv.objdetection.dnn.plugins.superres.Upscale;
 

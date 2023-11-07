@@ -1,3 +1,4 @@
+package yunet_face;
 import base.BaseTester;
 import hl.objml.opencv.objdetection.dnn.plugins.yunet.face.FaceDetector;
 
