@@ -37,7 +37,7 @@ public class Upscale extends ImgDetectorBasePlugin implements IImgDetectorPlugin
 	    		String sAlgoName = m.group(1); //FSRCNN
 	    		String sScale = m.group(2); //4
 
- System.out.println(_model_filename+" = "+sAlgoName.toLowerCase()+" x"+sScale);
+//System.out.println(_model_filename+" = "+sAlgoName.toLowerCase()+" x"+sScale);
 
  				if(sAlgoName==null || sAlgoName.trim().length()==0 ||
  					sScale==null || sScale.trim().length()==0)
