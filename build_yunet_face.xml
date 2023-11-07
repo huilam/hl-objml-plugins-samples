@@ -18,13 +18,13 @@
 		
 	<target name="jar" depends="compile">
 		<delete dir="${build}">
-			<include name="**.jar"/>
+			<include name="**/hl-objml-plugin_${ant.project.name}_**.jar"/>
 		</delete>
 				
 		<copydir src="${src}" dest="${build}">
 			<exclude name="**/*.java"/>
 		</copydir>
-		<jar jarfile="${build}/${ant.project.name}_jdk11_${buildno}.jar" basedir="${build}">
+		<jar jarfile="${build}/hl-objml-plugin_${ant.project.name}_jdk11_${buildno}.jar" basedir="${build}">
 			<include name="**/*.*"/>
 			<include name="version/${ant.project.name}_${buildno}"/>
 		</jar>
