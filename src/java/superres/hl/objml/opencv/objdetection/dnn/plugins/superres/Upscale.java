@@ -1,6 +1,5 @@
 package hl.objml.opencv.objdetection.dnn.plugins.superres;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -20,12 +19,10 @@ public class Upscale extends ImgDetectorBasePlugin implements IImgDetectorPlugin
 	
 	private Pattern pattModelNameNScale = Pattern.compile("([A-Z][A-Z,a-z]+)_x([2,3,4])\\.pb");
 	
-    public Mat upScaling(File aInputFile) throws Exception
+    public Mat upScaling(Mat aMatInput) throws Exception
     {
-    	if(!isPluginOK())
+    	if(!isPluginOK() || aMatInput==null)
     		return null;
-    	
-    	Mat matInput = getCvMatFromFile(aInputFile);
     	
     	if(superres==null)
     	{
@@ -51,7 +48,7 @@ public class Upscale extends ImgDetectorBasePlugin implements IImgDetectorPlugin
     	}
     	
     	Mat matOutput = new Mat();
-    	superres.upsample(matInput, matOutput);   	
+    	superres.upsample(aMatInput, matOutput);   	
     	return matOutput;
     }
 
@@ -77,13 +74,20 @@ public class Upscale extends ImgDetectorBasePlugin implements IImgDetectorPlugin
 	}
 	
 	@Override
-	public Map<String, Object> detectImage(File aImageFile) {
+	public Map<String, Object> detectImage(Mat aMatInput) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		try {
-			Mat matOutput = upScaling(aImageFile);
-			if(matOutput!=null)
+			Mat matOutput = null;
+			try {
+				matOutput = upScaling(aMatInput);
+				if(matOutput!=null)
+				{
+					mapResult.put(IImgDetectorPlugin._KEY_MAT_OUTPUT, matOutput);
+				}
+			}finally
 			{
-				mapResult.put(IImgDetectorPlugin._KEY_MAT_OUTPUT, matOutput);
+				if(matOutput!=null)
+					matOutput.release();
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
