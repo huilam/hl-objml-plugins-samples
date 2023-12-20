@@ -15,6 +15,7 @@ import org.opencv.objdetect.FaceDetectorYN;
 
 import hl.objml.opencv.objdetection.IImgDetectorPlugin;
 import hl.objml.opencv.objdetection.ImgDetectorBasePlugin;
+import hl.opencv.util.OpenCvUtil;
 
 public class FaceDetector extends ImgDetectorBasePlugin implements IImgDetectorPlugin {
 
@@ -44,17 +45,10 @@ public class FaceDetector extends ImgDetectorBasePlugin implements IImgDetectorP
 	public Map<String, Object> detectImage(Mat aMatInput) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		try {
-			Mat matOutput = null;
-			try{
-				matOutput = faceDetect(aMatInput);
-				if(matOutput!=null)
-				{
-					mapResult.put(IImgDetectorPlugin._KEY_MAT_OUTPUT, matOutput);
-				}
-			}finally
+			Mat matOutput = faceDetect(aMatInput);
+			if(matOutput!=null && !matOutput.empty())
 			{
-				if(matOutput!=null)
-					matOutput.release();
+				mapResult.put(IImgDetectorPlugin._KEY_MAT_OUTPUT, matOutput);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -74,6 +68,7 @@ public class FaceDetector extends ImgDetectorBasePlugin implements IImgDetectorP
 		
 		try {
 	        srcImg 		= aMatInput.clone();
+	        OpenCvUtil.removeAlphaChannel(srcImg);
 	       
 	        long lStartMs 	= 0;
 	        
@@ -104,7 +99,7 @@ public class FaceDetector extends ImgDetectorBasePlugin implements IImgDetectorP
 	        
 	        faces = new Mat();
 	        faceDetectorYN.detect(srcImg,faces);
-	//        System.out.println(" - Detected face = "+faces.height()+" : "+(System.currentTimeMillis()-lStartMs)+"ms");
+	        System.out.println(" - Detected face = "+faces.height()+" : "+(System.currentTimeMillis()-lStartMs)+"ms");
 	        for (int i = 0; i < faces.height(); i++)
 	        {
 	        	Rect r = new Rect((int) (faces.get(i, 0)[0]), (int)(faces.get(i, 1)[0]), (int)(faces.get(i, 2)[0]), (int)(faces.get(i, 3)[0]));      	
@@ -117,18 +112,21 @@ public class FaceDetector extends ImgDetectorBasePlugin implements IImgDetectorP
 	            Imgproc.circle(srcImg, new Point(faces.get(i, 12)[0], faces.get(i, 13)[0]), 2, new Scalar(0, 255, 255), 2);
 	        }
 	        
-	        if(faces.height()>0)
-	        	return srcImg;
-	        else
-	        	return null;
+	        if(faces.height()<=0)
+	        {
+	        	if(srcImg!=null)
+	        	{
+	        		srcImg.release();
+	        	}
+	        	srcImg = null;
+	        }
 		}finally
 		{
-			if(srcImg!=null)
-				srcImg.release();
 			
 			if(faces!=null)
 				faces.release();
 		}
+		return srcImg;
     }
 
 }

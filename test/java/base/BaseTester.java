@@ -68,6 +68,7 @@ public class BaseTester {
 			if(mapResult!=null)
 			{
 				Mat matOutput = (Mat) mapResult.get(IImgDetectorPlugin._KEY_MAT_OUTPUT);
+				
 				if(matOutput!=null && !matOutput.empty())
 				{
 					String savedFileName = 
@@ -77,6 +78,15 @@ public class BaseTester {
 					
 					if(savedFileName!=null)
 						System.out.println("     - [saved] "+savedFileName);
+				}
+				else
+				{
+					int idx = 0;
+					for(String key : mapResult.keySet())
+					{
+						System.out.println("    ["+idx+"] "+key+" - "+mapResult.get(key));
+						idx++;
+					}
 				}
 			}
 			

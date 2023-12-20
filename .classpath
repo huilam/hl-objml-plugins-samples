@@ -12,7 +12,7 @@
 	<classpathentry combineaccessrules="false" kind="src" path="/hl-objml-plugin-framework"/>
 	<classpathentry kind="lib" path="lib/opencv-480.jar"/>
 	<classpathentry kind="lib" path="lib/native"/>
-	<classpathentry kind="lib" path="lib/hl-opencv_jdk11_20231016-1549-39.jar"/>
 	<classpathentry kind="lib" path="lib/hl-objml-plugin-framework_jdk11_20231220-1357-56.jar"/>
+	<classpathentry kind="lib" path="lib/hl-opencv_jdk11_20231220-1422-13.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
