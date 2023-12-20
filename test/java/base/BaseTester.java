@@ -17,6 +17,8 @@ public class BaseTester {
 		List<File> listImage = new ArrayList<File>();
 		listImage.add(new File("./test/images/world-largest-selfie.jpg"));
 		
+		listImage.add(new File("./test/images/dashcam_streetview.jpg"));
+		
 		return listImage;
 	}
 	
@@ -63,16 +65,19 @@ public class BaseTester {
 			
 			System.out.println("     - Result : "+(mapResult!=null?mapResult.size():0));
 			
-			Mat matOutput = (Mat) mapResult.get(IImgDetectorPlugin._KEY_MAT_OUTPUT);
-			if(matOutput!=null && !matOutput.empty())
+			if(mapResult!=null)
 			{
-				String savedFileName = 
-						saveImage(aDetector.getPluginName(), 
-						matOutput, 
-						fileFolder, fImg.getName());
-				
-				if(savedFileName!=null)
-					System.out.println("     - [saved] "+savedFileName);
+				Mat matOutput = (Mat) mapResult.get(IImgDetectorPlugin._KEY_MAT_OUTPUT);
+				if(matOutput!=null && !matOutput.empty())
+				{
+					String savedFileName = 
+							saveImage(aDetector.getPluginName(), 
+							matOutput, 
+							fileFolder, fImg.getName());
+					
+					if(savedFileName!=null)
+						System.out.println("     - [saved] "+savedFileName);
+				}
 			}
 			
 		}		
