@@ -48,7 +48,7 @@ public class Upscale extends ImgDetectorBasePlugin implements IImgDetectorPlugin
     	}
     	
     	Mat matOutput = new Mat();
-    	superres.upsample(aMatInput, matOutput);   	
+    	superres.upsample(aMatInput, matOutput);
     	return matOutput;
     }
 
@@ -77,17 +77,10 @@ public class Upscale extends ImgDetectorBasePlugin implements IImgDetectorPlugin
 	public Map<String, Object> detectImage(Mat aMatInput) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		try {
-			Mat matOutput = null;
-			try {
-				matOutput = upScaling(aMatInput);
-				if(matOutput!=null)
-				{
-					mapResult.put(IImgDetectorPlugin._KEY_MAT_OUTPUT, matOutput);
-				}
-			}finally
+			Mat matOutput = upScaling(aMatInput);
+			if(matOutput!=null)
 			{
-				if(matOutput!=null)
-					matOutput.release();
+				mapResult.put(IImgDetectorPlugin._KEY_MAT_OUTPUT, matOutput);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
