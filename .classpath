@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/java/yunet_face"/>
-	<classpathentry kind="src" path="src/java/yolox"/>
 	<classpathentry kind="src" path="test/java"/>
 	<classpathentry kind="src" path="src/java/superres"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
@@ -9,10 +8,9 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry combineaccessrules="false" kind="src" path="/hl-objml-plugin-framework"/>
-	<classpathentry kind="lib" path="lib/opencv-480.jar"/>
 	<classpathentry kind="lib" path="lib/native"/>
-	<classpathentry kind="lib" path="lib/hl-objml-plugin-framework_jdk11_20231220-1357-56.jar"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/hl-objml-plugin-framework"/>
 	<classpathentry kind="lib" path="lib/hl-opencv_jdk11_20231220-1422-13.jar"/>
+	<classpathentry kind="lib" path="lib/opencv-480.jar"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>
