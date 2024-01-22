@@ -9,11 +9,11 @@ import java.util.regex.Pattern;
 import org.opencv.core.Mat;
 import org.opencv.dnn_superres.DnnSuperResImpl;
 
-import hl.objml.opencv.objdetection.IImgDetectorPlugin;
-import hl.objml.opencv.objdetection.ImgDetectorBasePlugin;
+import hl.objml.opencv.objdetection.ImgMLBasePlugin;
+import hl.plugin.image.IImgDetectorPlugin;
 
 
-public class Upscale extends ImgDetectorBasePlugin implements IImgDetectorPlugin {
+public class Upscale extends ImgMLBasePlugin implements IImgDetectorPlugin {
 	
 	private DnnSuperResImpl superres = null;
 	

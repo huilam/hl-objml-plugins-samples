@@ -8,9 +8,9 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/native"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/hl-objml-plugin-framework"/>
 	<classpathentry kind="lib" path="lib/hl-opencv_jdk11_20231220-1422-13.jar"/>
-	<classpathentry kind="lib" path="lib/opencv-480.jar"/>
+	<classpathentry kind="lib" path="lib/opencv-490.jar"/>
+	<classpathentry kind="lib" path="lib/native"/>
 	<classpathentry kind="output" path="build/classes"/>
 </classpath>

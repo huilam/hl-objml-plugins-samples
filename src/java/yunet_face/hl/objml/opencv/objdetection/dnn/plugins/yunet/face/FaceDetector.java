@@ -13,11 +13,11 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.FaceDetectorYN;
 
-import hl.objml.opencv.objdetection.IImgDetectorPlugin;
-import hl.objml.opencv.objdetection.ImgDetectorBasePlugin;
+import hl.objml.opencv.objdetection.ImgMLBasePlugin;
 import hl.opencv.util.OpenCvUtil;
+import hl.plugin.image.IImgDetectorPlugin;
 
-public class FaceDetector extends ImgDetectorBasePlugin implements IImgDetectorPlugin {
+public class FaceDetector extends ImgMLBasePlugin implements IImgDetectorPlugin {
 
 	private FaceDetectorYN faceDetectorYN = null;
 	

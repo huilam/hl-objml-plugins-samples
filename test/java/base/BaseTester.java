@@ -6,9 +6,9 @@ import java.util.Map;
 
 import org.opencv.core.Mat;
 
-import hl.objml.opencv.objdetection.IImgDetectorPlugin;
-import hl.objml.opencv.objdetection.ImgDetectorBasePlugin;
+import hl.objml.opencv.objdetection.ImgMLBasePlugin;
 import hl.opencv.util.OpenCvUtil;
+import hl.plugin.image.IImgDetectorPlugin;
 
 public class BaseTester {
 	
@@ -49,6 +49,8 @@ public class BaseTester {
 			e.printStackTrace();
 		}
 		
+		aDetector.isPluginOK();
+		
 		File fileFolder = new File("./test/images/output/"+System.currentTimeMillis());
 		
 		int i = 1;
@@ -58,7 +60,7 @@ public class BaseTester {
 			System.out.println();
 			System.out.print(" "+(i++)+". Perform test on "+fImg.getName()+" ... ");
 			
-			Mat matImg = ImgDetectorBasePlugin.getCvMatFromFile(fImg);
+			Mat matImg = ImgMLBasePlugin.getCvMatFromFile(fImg);
 			OpenCvUtil.removeAlphaChannel(matImg);
 			
 			Map<String, Object> mapResult = aDetector.detectImage(matImg);
