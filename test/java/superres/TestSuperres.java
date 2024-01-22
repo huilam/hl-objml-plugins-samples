@@ -1,6 +1,6 @@
 package superres;
 import base.BaseTester;
-import hl.objml.opencv.objdetection.dnn.plugins.superres.Upscale;
+import hl.objml.opencv.imagefilters.dnn.plugins.superres.Upscale;
 
 public class TestSuperres extends BaseTester{
 

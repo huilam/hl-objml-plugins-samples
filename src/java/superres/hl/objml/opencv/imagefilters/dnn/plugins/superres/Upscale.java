@@ -1,4 +1,4 @@
-package hl.objml.opencv.objdetection.dnn.plugins.superres;
+package hl.objml.opencv.imagefilters.dnn.plugins.superres;
 
 import java.util.HashMap;
 import java.util.Map;
