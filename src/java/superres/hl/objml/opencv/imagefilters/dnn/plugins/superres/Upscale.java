@@ -2,7 +2,6 @@ package hl.objml.opencv.imagefilters.dnn.plugins.superres;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,8 +16,28 @@ import hl.plugin.image.IMLDetectionPlugin;
 public class Upscale extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 	
 	private DnnSuperResImpl superres = null;
-	
 	private Pattern pattModelNameNScale = Pattern.compile("([A-Z][A-Z,a-z]+)_x([2,3,4])\\.pb");
+	
+	@Override
+	public boolean isPluginOK() {
+		return super.isPluginOK(getClass());
+	}
+	
+	@Override
+	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
+		Map<String, Object> mapResult = new HashMap<String, Object>();
+		try {
+			Mat matOutput = upScaling(aMatInput);
+			if(matOutput!=null)
+			{
+				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
+			}
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return mapResult;
+	}
 	
     public Mat upScaling(Mat aMatInput) throws Exception
     {
@@ -52,42 +71,4 @@ public class Upscale extends MLDetectionBasePlugin implements IMLDetectionPlugin
     	superres.upsample(aMatInput, matOutput);
     	return matOutput;
     }
-
-	@Override
-	public boolean isPluginOK() {
-		return super.isPluginOK(getClass());
-	}
-
-	@Override
-	public Properties getPluginProps() {
-		return super.getPluginProps();
-	}
-	
-	@Override
-	public String getPluginName() {
-		return super.getModelName();
-	}
-	
-	@Override
-	public String getPluginMLModelFileName()
-	{
-		return super.getModelFileName();
-	}
-	
-	@Override
-	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
-		Map<String, Object> mapResult = new HashMap<String, Object>();
-		try {
-			Mat matOutput = upScaling(aMatInput);
-			if(matOutput!=null)
-			{
-				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return mapResult;
-	}
-	
 }

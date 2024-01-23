@@ -3,7 +3,6 @@ package hl.objml.opencv.objdetection.dnn.plugins.yunet.face;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 
 import org.json.JSONObject;
 import org.opencv.core.Mat;
@@ -27,21 +26,6 @@ public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionP
 		return super.isPluginOK(getClass());
 	}
 
-	@Override
-	public Properties getPluginProps() {
-		return super.getPluginProps();
-	}
-	
-	@Override
-	public String getPluginName() {
-		return super.getModelName();
-	}
-	
-	@Override
-	public String getPluginMLModelFileName() {
-		return super.getModelFileName();
-	}
-	
 	@Override
 	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
