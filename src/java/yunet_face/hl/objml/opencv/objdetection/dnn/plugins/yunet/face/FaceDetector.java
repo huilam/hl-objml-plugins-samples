@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
@@ -13,11 +14,11 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.FaceDetectorYN;
 
-import hl.objml.opencv.objdetection.ImgMLBasePlugin;
+import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
-import hl.plugin.image.IImgDetectorPlugin;
+import hl.plugin.image.IMLDetectionPlugin;
 
-public class FaceDetector extends ImgMLBasePlugin implements IImgDetectorPlugin {
+public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 
 	private FaceDetectorYN faceDetectorYN = null;
 	
@@ -42,13 +43,13 @@ public class FaceDetector extends ImgMLBasePlugin implements IImgDetectorPlugin 
 	}
 	
 	@Override
-	public Map<String, Object> detectImage(Mat aMatInput) {
+	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		try {
 			Mat matOutput = faceDetect(aMatInput);
 			if(matOutput!=null && !matOutput.empty())
 			{
-				mapResult.put(IImgDetectorPlugin._KEY_MAT_OUTPUT, matOutput);
+				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

@@ -6,14 +6,15 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.dnn_superres.DnnSuperResImpl;
 
-import hl.objml.opencv.objdetection.ImgMLBasePlugin;
-import hl.plugin.image.IImgDetectorPlugin;
+import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
+import hl.plugin.image.IMLDetectionPlugin;
 
 
-public class Upscale extends ImgMLBasePlugin implements IImgDetectorPlugin {
+public class Upscale extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 	
 	private DnnSuperResImpl superres = null;
 	
@@ -74,13 +75,13 @@ public class Upscale extends ImgMLBasePlugin implements IImgDetectorPlugin {
 	}
 	
 	@Override
-	public Map<String, Object> detectImage(Mat aMatInput) {
+	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		try {
 			Mat matOutput = upScaling(aMatInput);
 			if(matOutput!=null)
 			{
-				mapResult.put(IImgDetectorPlugin._KEY_MAT_OUTPUT, matOutput);
+				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -88,5 +89,5 @@ public class Upscale extends ImgMLBasePlugin implements IImgDetectorPlugin {
 		}
 		return mapResult;
 	}
-    
+	
 }

@@ -4,11 +4,12 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import org.json.JSONObject;
 import org.opencv.core.Mat;
 
-import hl.objml.opencv.objdetection.ImgMLBasePlugin;
+import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
-import hl.plugin.image.IImgDetectorPlugin;
+import hl.plugin.image.IMLDetectionPlugin;
 
 public class BaseTester {
 	
@@ -38,7 +39,7 @@ public class BaseTester {
 		return null;
 	}
 	
-	public static void testDetector(IImgDetectorPlugin aDetector)
+	public static void testDetector(IMLDetectionPlugin aDetector)
 	{
 		OpenCvUtil.initOpenCV();
 		
@@ -60,16 +61,16 @@ public class BaseTester {
 			System.out.println();
 			System.out.print(" "+(i++)+". Perform test on "+fImg.getName()+" ... ");
 			
-			Mat matImg = ImgMLBasePlugin.getCvMatFromFile(fImg);
+			Mat matImg = MLDetectionBasePlugin.getCvMatFromFile(fImg);
 			OpenCvUtil.removeAlphaChannel(matImg);
 			
-			Map<String, Object> mapResult = aDetector.detectImage(matImg);
+			Map<String, Object> mapResult = aDetector.detect(matImg, null);
 			
 			System.out.println("     - Result : "+(mapResult!=null?mapResult.size():0));
 			
 			if(mapResult!=null)
 			{
-				Mat matOutput = (Mat) mapResult.get(IImgDetectorPlugin._KEY_MAT_OUTPUT);
+				Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_MAT_OUTPUT);
 				
 				if(matOutput!=null && !matOutput.empty())
 				{
