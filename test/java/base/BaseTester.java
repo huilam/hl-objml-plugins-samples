@@ -3,8 +3,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-import org.json.JSONObject;
 import org.opencv.core.Mat;
 
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
@@ -13,7 +11,7 @@ import hl.plugin.image.IMLDetectionPlugin;
 
 public class BaseTester {
 	
-	private static List<File> getTestImageFiles()
+	protected static List<File> getTestImageFiles()
 	{
 		List<File> listImage = new ArrayList<File>();
 		listImage.add(new File("./test/images/world-largest-selfie.jpg"));
@@ -23,7 +21,7 @@ public class BaseTester {
 		return listImage;
 	}
 	
-	private static String saveImage(
+	protected static String saveImage(
 			String aPluginName,
 			Mat aMatImage, File aOutputFolder, String aOrigImgFileName)
 	{
