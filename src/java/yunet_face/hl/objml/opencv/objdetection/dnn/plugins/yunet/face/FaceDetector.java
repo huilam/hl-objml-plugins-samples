@@ -51,6 +51,10 @@ public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionP
 		Mat srcImg 	= null;
 		Mat faces 	= null;
 		
+		System.out.println("objml.mlmodel.detection.support-labels="+getPluginProps().getProperty("objml.mlmodel.detection.support-labels"));
+		
+		
+		
 		try {
 	        srcImg 		= aMatInput.clone();
 	        OpenCvUtil.removeAlphaChannel(srcImg);
