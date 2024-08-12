@@ -1,4 +1,3 @@
-package base;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,7 +59,6 @@ public class BaseTester {
 			System.out.print(" "+(i++)+". Perform test on "+fImg.getName()+" ... ");
 			
 			Mat matImg = MLDetectionBasePlugin.getCvMatFromFile(fImg);
-			OpenCvUtil.removeAlphaChannel(matImg);
 			
 			Map<String, Object> mapResult = aDetector.detect(matImg, null);
 			

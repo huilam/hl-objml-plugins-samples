@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/java/yunet_face"/>
+	<classpathentry kind="src" path="src/java/yolox"/>
 	<classpathentry kind="src" path="src/java/empty_sample"/>
 	<classpathentry kind="src" path="test/java"/>
 	<classpathentry kind="src" path="src/java/superres"/>
