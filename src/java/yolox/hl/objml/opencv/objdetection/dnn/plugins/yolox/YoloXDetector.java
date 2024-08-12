@@ -24,9 +24,9 @@ import hl.plugin.image.IMLDetectionPlugin;
 
 public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 	
-	private static Net netYoloX = null;
-	private static Size sizeInput = new Size(640,480);
-	private static List<String> objClasses = new ArrayList<String>();
+	private static Net NET_YOLOX = null;
+	private static Size SIZE_INPUT = new Size(640,640);
+	private static List<String> OBJ_CLASSESS = new ArrayList<String>();
 
 
 	@Override
@@ -38,44 +38,57 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		try {
-			if(netYoloX==null)
+			if(NET_YOLOX==null)
 	        {
 				init();
 	        }
 			
-System.out.println("aMatInput="+aMatInput);
 			
-			
-			Mat matDnnImg = Dnn.blobFromImage(aMatInput.clone(), 1.0 / 255.0, sizeInput, new Scalar(0, 0, 0), true, false);
-	        netYoloX.setInput(matDnnImg);
+			Mat matDnnImg = Dnn.blobFromImage(aMatInput.clone(), 1.0 / 255.0, SIZE_INPUT, new Scalar(0, 0, 0), true, false);
+			NET_YOLOX.setInput(matDnnImg);
 
 	        // Run inference
 	        List<Mat> outputs = new ArrayList<>();
-	        netYoloX.forward(outputs, netYoloX.getUnconnectedOutLayersNames());
+	        NET_YOLOX.forward(outputs, NET_YOLOX.getUnconnectedOutLayersNames());
 
 	        List<Rect2d> outputBoxes = new ArrayList<>();
 	        List<Float> outputConfidences = new ArrayList<>();
 	        List<Integer> outputClassIds = new ArrayList<>();
 	        
+	        float fConfidenceThreshold = 0.1f;
+	        float fNMSThreshold = 0.4f;
 	        
 	        decodePredictions(
-	        		0.5f,
+	        		fConfidenceThreshold,
 	        		outputs.get(0), aMatInput.size(), outputBoxes, outputConfidences, outputClassIds);
 
-	        MatOfInt indices = applyNMS(outputBoxes, outputConfidences, 0.5f, 0.4f);
+	        MatOfInt indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 	        
-	        Mat matOutput = aMatInput.clone();
 	        
-	        // Draw bounding boxes
-	        for (int idx : indices.toArray()) {
-	            Rect2d box = outputBoxes.get(idx);
-	            int classId = outputClassIds.get(idx);
-	            String label = objClasses.get(classId) + ": " + String.format("%.2f", outputConfidences.get(idx));
-	            Imgproc.rectangle(matOutput, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
-	            Imgproc.putText(matOutput, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+	        System.out.println("indices.WxH="+indices.width()+" x "+indices.height());
+	        
+	        if(indices.elemSize()>0)
+	        {
+		        
+		        Mat matOutput = aMatInput.clone();
+		        
+		        // Draw bounding boxes
+		        for (int idx : indices.toArray()) {
+		        	
+		        	System.out.println("idx="+idx);
+		        	
+		            Rect2d box = outputBoxes.get(idx);
+		            int classId = outputClassIds.get(idx);
+		            
+		            
+		            String label = OBJ_CLASSESS.get(classId) + ": " + String.format("%.2f", outputConfidences.get(idx));
+		            Imgproc.rectangle(matOutput, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
+		            Imgproc.putText(matOutput, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+		        }
+				
+				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
+				
 	        }
-			
-			mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -85,13 +98,13 @@ System.out.println("aMatInput="+aMatInput);
 	
 	private void init()
 	{
-		netYoloX = Dnn.readNetFromONNX( getModelFileName());
+		NET_YOLOX = Dnn.readNetFromONNX( getModelFileName());
 		String supporedLabels = (String) getPluginProps().get("objml.mlmodel.detection.support-labels");
 		
 		if(supporedLabels!=null)
 		{
 			String[] objs = supporedLabels.split("\n");
-			objClasses = new ArrayList<>(Arrays.asList(objs));
+			OBJ_CLASSESS = new ArrayList<>(Arrays.asList(objs));
 		}
 		
 	}
