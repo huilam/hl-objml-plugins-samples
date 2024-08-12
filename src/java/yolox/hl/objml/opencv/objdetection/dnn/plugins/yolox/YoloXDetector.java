@@ -49,6 +49,8 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 			
 			Size sizeInput = DEF_INPUT_SIZE;
 			Mat matDnnImg = aMatInput.clone();
+			 // Convert from BGR to RGB
+	        Imgproc.cvtColor(matDnnImg, matDnnImg, Imgproc.COLOR_BGR2RGB);
 			
 			matDnnImg = Dnn.blobFromImage(matDnnImg, 1.0 / 255.0, sizeInput, new Scalar(0, 0, 0), true, false);
 			NET_YOLOX.setInput(matDnnImg);
@@ -69,13 +71,11 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	        
 	        decodePredictions(matResult, sizeInput, outputBoxes, outputConfidences, outputClassIds, fConfidenceThreshold);
 
+	        System.out.println("outputBoxes.WxH="+outputBoxes.size());
 	        
-	        MatOfInt indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
-	        
-	        System.out.println("indices.WxH="+indices.width()+" x "+indices.height());
-	        
-	        if(indices.elemSize()>0)
+	        if(outputBoxes.size()>0)
 	        {
+		        MatOfInt indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 		        
 		        Mat matOutputImg = aMatInput.clone();
 		        
