@@ -13,8 +13,9 @@ public class BaseTester {
 	protected static List<File> getTestImageFiles()
 	{
 		List<File> listImage = new ArrayList<File>();
-		listImage.add(new File("./test/images/world-largest-selfie.jpg"));
 		
+		listImage.add(new File("./test/images/dog_bike_car.jpg"));
+		listImage.add(new File("./test/images/world-largest-selfie.jpg"));
 		listImage.add(new File("./test/images/dashcam_streetview.jpg"));
 		
 		return listImage;

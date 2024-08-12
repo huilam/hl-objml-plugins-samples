@@ -20,13 +20,17 @@ import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
+import hl.opencv.util.OpenCvUtil;
 import hl.plugin.image.IMLDetectionPlugin;
 
 public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 	
 	private static Net NET_YOLOX = null;
-	private static Size SIZE_INPUT = new Size(640,640);
 	private static List<String> OBJ_CLASSESS = new ArrayList<String>();
+	
+    private static final float DEF_CONFIDENCE_THRESHOLD = 0.1f;
+    private static final float DEF_NMS_THRESHOLD 		= 0.4f;
+    private static final Size DEF_INPUT_SIZE 			= new Size(640, 640);
 
 
 	@Override
@@ -43,34 +47,37 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 				init();
 	        }
 			
+			Size sizeInput = DEF_INPUT_SIZE;
+			Mat matDnnImg = aMatInput.clone();
 			
-			Mat matDnnImg = Dnn.blobFromImage(aMatInput.clone(), 1.0 / 255.0, SIZE_INPUT, new Scalar(0, 0, 0), true, false);
+			matDnnImg = Dnn.blobFromImage(matDnnImg, 1.0 / 255.0, sizeInput, new Scalar(0, 0, 0), true, false);
 			NET_YOLOX.setInput(matDnnImg);
 
 	        // Run inference
 	        List<Mat> outputs = new ArrayList<>();
 	        NET_YOLOX.forward(outputs, NET_YOLOX.getUnconnectedOutLayersNames());
-
-	        List<Rect2d> outputBoxes = new ArrayList<>();
-	        List<Float> outputConfidences = new ArrayList<>();
-	        List<Integer> outputClassIds = new ArrayList<>();
 	        
-	        float fConfidenceThreshold = 0.1f;
-	        float fNMSThreshold = 0.4f;
+	        Mat matResult = outputs.get(0);
+			
+	        List<Rect2d> outputBoxes 		= new ArrayList<>();
+	        List<Float> outputConfidences 	= new ArrayList<>();
+	        List<Integer> outputClassIds 	= new ArrayList<>();
 	        
-	        decodePredictions(
-	        		fConfidenceThreshold,
-	        		outputs.get(0), aMatInput.size(), outputBoxes, outputConfidences, outputClassIds);
+	       
+	        float fConfidenceThreshold = DEF_CONFIDENCE_THRESHOLD;
+	        float fNMSThreshold = DEF_NMS_THRESHOLD;
+	        
+	        decodePredictions(matResult, sizeInput, outputBoxes, outputConfidences, outputClassIds, fConfidenceThreshold);
 
+	        
 	        MatOfInt indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
-	        
 	        
 	        System.out.println("indices.WxH="+indices.width()+" x "+indices.height());
 	        
 	        if(indices.elemSize()>0)
 	        {
 		        
-		        Mat matOutput = aMatInput.clone();
+		        Mat matOutputImg = aMatInput.clone();
 		        
 		        // Draw bounding boxes
 		        for (int idx : indices.toArray()) {
@@ -80,13 +87,12 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 		            Rect2d box = outputBoxes.get(idx);
 		            int classId = outputClassIds.get(idx);
 		            
-		            
 		            String label = OBJ_CLASSESS.get(classId) + ": " + String.format("%.2f", outputConfidences.get(idx));
-		            Imgproc.rectangle(matOutput, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
-		            Imgproc.putText(matOutput, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+		            Imgproc.rectangle(matOutputImg, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
+		            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
 		        }
 				
-				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
+				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutputImg);
 				
 	        }
 		} catch (Exception e) {
@@ -98,7 +104,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	
 	private void init()
 	{
-		NET_YOLOX = Dnn.readNetFromONNX( getModelFileName());
+		NET_YOLOX = Dnn.readNet( getModelFileName());
 		String supporedLabels = (String) getPluginProps().get("objml.mlmodel.detection.support-labels");
 		
 		if(supporedLabels!=null)
@@ -127,18 +133,26 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	}
 
     private static void decodePredictions(
-    		float CONFIDENCE_THRESHOLD,
     		Mat output, Size imageSize, 
-    		List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds) {
+    		List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
+    		float CONFIDENCE_THRESHOLD) {
+    	
         int width = (int) imageSize.width;
         int height = (int) imageSize.height;
 
-        for (int i = 0; i < output.rows(); i++) {
-            Mat row = output.row(i);
+        int numDetections = (int) output.size(1);
+        int numClasses = (int) output.size(2) - 5; // Subtract 5 for bbox + confidence
+
+        for (int i = 0; i < numDetections; i++) {
+            Mat row = output.row(0);
+            
+           // Mat row = output.row(0).rowRange(i, i + 1);
+            
             float[] data = new float[(int) row.total()];
             row.get(0, 0, data);
-
+            
             float confidence = data[4];
+            
             if (confidence > CONFIDENCE_THRESHOLD) {
                 int centerX = (int) (data[0] * width);
                 int centerY = (int) (data[1] * height);
@@ -150,7 +164,17 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 
                 boxes.add(new Rect2d(x, y, w, h));
                 confidences.add(confidence);
-                classIds.add(getClassId(data));
+
+                // Get class scores and find the class ID with the highest score
+                float maxScore = Float.MIN_VALUE;
+                int classId = -1;
+                for (int j = 5; j < data.length; j++) {
+                    if (data[j] > maxScore) {
+                        maxScore = data[j];
+                        classId = j - 5; // Index of class ID
+                    }
+                }
+                                classIds.add(classId);
             }
         }
     }
