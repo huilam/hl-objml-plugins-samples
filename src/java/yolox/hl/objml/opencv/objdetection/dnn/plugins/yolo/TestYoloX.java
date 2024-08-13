@@ -1,4 +1,4 @@
-package hl.objml.opencv.objdetection.dnn.plugins.yolox;
+package hl.objml.opencv.objdetection.dnn.plugins.yolo;
 
 import org.opencv.core.*;
 import org.opencv.dnn.Dnn;
@@ -35,8 +35,13 @@ public class TestYoloX {
         // Load OpenCV native library
     	 OpenCvUtil.initOpenCV();
 
+    	 String sPackageNage = TestYoloX.class.getPackage().getName();
+    	 String ssPackageFolder = sPackageNage.replaceAll("\\.", "\\/");
+    	 
         // Load YOLOX ONNX model
-        File fileModel = new File("./src/java/yolox/hl/objml/opencv/objdetection/dnn/plugins/yolox/yolox_s.onnx");
+        File fileModel = new File("./src/java/yolox/"+ssPackageFolder+"/yolox_s.onnx");
+        
+        System.out.println(fileModel.getAbsolutePath()+" = "+fileModel.isFile());
         Net net = Dnn.readNetFromONNX(fileModel.getAbsolutePath());
 
         // Load the image

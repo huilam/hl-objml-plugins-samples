@@ -1,4 +1,4 @@
-import hl.objml.opencv.objdetection.dnn.plugins.yolox.YoloXDetector;
+import hl.objml.opencv.objdetection.dnn.plugins.yolo.YoloXDetector;
 
 public class TestYoloXDetector extends BaseTester {
 

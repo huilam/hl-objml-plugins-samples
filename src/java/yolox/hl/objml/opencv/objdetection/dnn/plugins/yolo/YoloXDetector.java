@@ -1,4 +1,4 @@
-package hl.objml.opencv.objdetection.dnn.plugins.yolox;
+package hl.objml.opencv.objdetection.dnn.plugins.yolo;
 
 import java.util.ArrayList;
 import java.util.Arrays;
