@@ -48,6 +48,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 			
 			Size sizeInput = DEF_INPUT_SIZE;
 			Mat matDnnImg = aMatInput.clone();
+			
 			 // Convert from BGR to RGB
 	        Imgproc.cvtColor(matDnnImg, matDnnImg, Imgproc.COLOR_BGR2RGB);
 	        
@@ -63,7 +64,7 @@ System.out.println("## Dnn Input Image="+matDnnImg);
 	        NET_YOLOX.forward(outputs, NET_YOLOX.getUnconnectedOutLayersNames());
 	        
 	        Mat matResult = outputs.get(0);
-System.out.println("## Inference Output="+matResult);
+System.out.println("@@@ Inference Output="+matResult);
 			
 	        List<Rect2d> outputBoxes 		= new ArrayList<>();
 	        List<Float> outputConfidences 	= new ArrayList<>();
@@ -75,7 +76,9 @@ System.out.println("## Inference Output="+matResult);
 	        
 	        decodePredictions(matResult, sizeInput, outputBoxes, outputConfidences, outputClassIds, fConfidenceThreshold);
 
-System.out.println("## Detection Boxes="+outputBoxes.size());
+System.out.println("@@@   Detection Boxes="+outputBoxes.size());
+System.out.println("@@@   Detection Confidences="+outputConfidences.size());
+System.out.println("@@@   Detection ClassIds="+outputClassIds.size());
 	        
 	        if(outputBoxes.size()>0)
 	        {
@@ -180,9 +183,8 @@ System.out.println("## applyNMS indices="+indices);
                         classId = j - 5; // Index of class ID
                     }
                 }
-                                classIds.add(classId);
+                classIds.add(classId);
             }
         }
     }
-
 }
