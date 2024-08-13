@@ -141,54 +141,50 @@ System.out.println("## applyNMS indices="+indices);
 
 	}
 
-    private static void decodePredictions(
-    		Mat output, Size imageSize, 
-    		List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
-    		float CONFIDENCE_THRESHOLD) {
-    	
-        int width 	= (int) imageSize.width;
-        int height 	= (int) imageSize.height;
+	private static void decodePredictions(
+	        Mat output, Size imageSize, 
+	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
+	        float CONFIDENCE_THRESHOLD) {
 
-        int numDetections 	= (int) output.size(1);
-        int numClasses 		= (int) output.size(2) - 5; // Subtract 5 for bbox + confidence
+	    int width = (int) imageSize.width;
+	    int height = (int) imageSize.height;
 
-        if(numClasses != OBJ_CLASSESS.size())
-        {
-        	System.err.println("[ERR] Detection vs Expected obj-classes - "+numClasses+" vs "+OBJ_CLASSESS.size());
-        	return;
-        }
-        
-        for (int i = 0; i < numDetections; i++) {
-            Mat row = output.row(0);
-            
-            float[] data = new float[(int) row.total()];
-            row.get(0, 0, data);
-            
-            float confidence = data[4];
-            
-            if (confidence > CONFIDENCE_THRESHOLD) {
-                int centerX = (int) (data[0] * width);
-                int centerY = (int) (data[1] * height);
-                int w = (int) (data[2] * width);
-                int h = (int) (data[3] * height);
+	    int numDetections = (int) output.size(1);  // 8400 detections
+	    int numFeatures = (int) output.size(2);    // 85 features (bbox + confidence + class scores)
 
-                int x = centerX - w / 2;
-                int y = centerY - h / 2;
+	    // Create a buffer to store the detection data
+	    float[] data = new float[numFeatures];  // Correctly size the data array
 
-                boxes.add(new Rect2d(x, y, w, h));
-                confidences.add(confidence);
+	    for (int i = 0; i < numDetections; i++) {
+	        // Access the i-th detection's data correctly using get method
+	        output.get(0, i, data);
 
-                // Get class scores and find the class ID with the highest score
-                float maxScore = Float.MIN_VALUE;
-                int classId = -1;
-                for (int j = 5; j < data.length; j++) {
-                    if (data[j] > maxScore) {
-                        maxScore = data[j];
-                        classId = j - 5; // Index of class ID
-                    }
-                }
-                classIds.add(classId);
-            }
-        }
-    }
+	        float confidence = data[4];  // Confidence score
+
+	        if (confidence > CONFIDENCE_THRESHOLD) {
+	            // Calculate bounding box
+	            int centerX = (int) (data[0] * width);
+	            int centerY = (int) (data[1] * height);
+	            int w = (int) (data[2] * width);
+	            int h = (int) (data[3] * height);
+
+	            int x = centerX - w / 2;
+	            int y = centerY - h / 2;
+
+	            boxes.add(new Rect2d(x, y, w, h));
+	            confidences.add(confidence);
+
+	            // Find the class with the highest score
+	            float maxScore = Float.MIN_VALUE;
+	            int classId = -1;
+	            for (int j = 5; j < numFeatures; j++) {
+	                if (data[j] > maxScore) {
+	                    maxScore = data[j];
+	                    classId = j - 5;  // Offset to get the correct class ID
+	                }
+	            }
+	            classIds.add(classId);
+	        }
+	    }
+	}
 }
