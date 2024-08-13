@@ -5,6 +5,8 @@ import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
+import org.opencv.utils.Converters;
+
 import hl.opencv.util.OpenCvUtil;
 
 import java.io.File;
@@ -13,79 +15,121 @@ import java.util.List;
 
 public class TestYoloX {
 
-    private Net net;
-    private Size inputSize = new Size(640, 640);
-    private float confThreshold = 0.1f; // Confidence threshold
-    private Scalar mean = new Scalar(0, 0, 0); // Mean subtraction values
-
-    public TestYoloX(String modelWeights) {
-        this.net = Dnn.readNetFromONNX(modelWeights);
+    private static String matShapeToString(Mat mat) {
+    	
+    	StringBuffer sb = new StringBuffer();
+    	sb.append("{");
+    	for(int s=0; s<mat.dims(); s++)
+    	{
+    		if(s>0)
+    			sb.append(",");
+    		sb.append(mat.size(s));
+    	}
+    	sb.append("}");
+        return sb.toString();
     }
-
-    public List<Rect2d> detect(String imagePath) {
-        Mat image = Imgcodecs.imread(imagePath);
-        if (image.empty()) {
-            System.err.println("Failed to load image.");
-            return null;
-        }
-
-        Mat blob = Dnn.blobFromImage(image, 1 / 255.0, inputSize, mean, true, false);
-System.out.println("blob="+blob);        
-        net.setInput(blob);
-        Mat detections = net.forward();
-
-        List<Rect2d> boxes = new ArrayList<>();
-        
-System.out.println("detection="+detections);
-
-        for (int i = 0; i < detections.rows(); i++) {
-            float confidence = (float) detections.get(0, i)[4];
-            if (confidence > confThreshold) {
-                float centerX = (float) detections.get(0, i)[0] * image.cols();
-                float centerY = (float) detections.get(0, i)[1] * image.rows();
-                float width = (float) detections.get(0, i)[2] * image.cols();
-                float height = (float) detections.get(0, i)[3] * image.rows();
-
-                float left = centerX - width / 2;
-                float top = centerY - height / 2;
-
-                Rect2d box = new Rect2d(left, top, width, height);
-                boxes.add(box);
-
-                // Draw the bounding box and confidence on the image
-                Imgproc.rectangle(image, new Point(left, top), new Point(left + width, top + height), new Scalar(0, 255, 0), 2);
-                Imgproc.putText(image, String.format("%.2f", confidence), new Point(left, top - 5), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0));
-            }
-        }
-        
-        System.out.println("Total Detection = " + boxes.size());
-        if(boxes.size()>0)
-        {
-	        // Save the output image with bounding boxes
-	        String outputImagePath = imagePath.substring(0, imagePath.lastIndexOf(".")) + "_output.png";
-	        Imgcodecs.imwrite(outputImagePath, image);
-	        System.out.println("Output saved to: " + outputImagePath);
-        }
-        return boxes;
-    }
+    
 
     public static void main(String[] args) {
-        OpenCvUtil.initOpenCV();
+    	
+        // Load OpenCV native library
+    	 OpenCvUtil.initOpenCV();
 
+        // Load YOLOX ONNX model
         File fileModel = new File("./src/java/yolox/hl/objml/opencv/objdetection/dnn/plugins/yolox/yolox_s.onnx");
+        Net net = Dnn.readNetFromONNX(fileModel.getAbsolutePath());
+
+        // Load the image
         File fileImage = new File("./test/images/dog_bike_car.png");
+        Mat image = Imgcodecs.imread(fileImage.getAbsolutePath());
+System.out.println("image="+matShapeToString(image));
 
-        if (!fileModel.exists()) {
-            System.err.println("Model file not found.");
-            return;
+        // Prepare the input blob for the DNN
+        Size sz = new Size(640, 640); // Assuming input size for YOLOX
+        Mat blob = Dnn.blobFromImage(image, 1 / 255.0, sz, Scalar.all(0), true, false);
+System.out.println("blob="+matShapeToString(blob));
+        // Set the input to the network
+        net.setInput(blob);
+
+        // Run forward pass to get output
+        List<Mat> outputs = new ArrayList<>();
+        List<String> outNames = net.getUnconnectedOutLayersNames();
+        net.forward(outputs, outNames);
+System.out.println("outputs.get(0))="+matShapeToString(outputs.get(0)));
+        
+        // Post-processing the output
+        float confThreshold = 0.1f;
+        float nmsThreshold = 0.4f;
+
+        List<Integer> classIds = new ArrayList<>();
+        List<Float> confidences = new ArrayList<>();
+        List<Rect> boxes = new ArrayList<>();
+
+        // Assuming output format: [batch, num of boxes, 85] -> where last 85 corresponds to [x, y, w, h, conf, class scores]
+        for (Mat result : outputs) {
+        	
+            for (int i = 0; i < result.rows(); i++) {
+                Mat row = result.row(i);
+                Mat scores = row.colRange(5, result.cols());
+                Core.MinMaxLocResult mm = Core.minMaxLoc(scores);
+                float confidence = (float) mm.maxVal;
+                
+                if (confidence > confThreshold) {
+                    int classId = (int) mm.maxLoc.x;
+                    float[] data = new float[4];
+                    row.colRange(0, 4).get(0, 0, data);
+
+                    int centerX = (int) (data[0] * image.cols());
+                    int centerY = (int) (data[1] * image.rows());
+                    int width = (int) (data[2] * image.cols());
+                    int height = (int) (data[3] * image.rows());
+                    int left = centerX - width / 2;
+                    int top = centerY - height / 2;
+
+                    classIds.add(classId);
+                    confidences.add(confidence);
+                    boxes.add(new Rect(left, top, width, height));
+                }
+            }
         }
 
-        if (!fileImage.exists()) {
-            System.err.println("Image file not found.");
-            return;
-        }
+        if(boxes.size()>0)
+        {
+            // Apply Non-Maximum Suppression (NMS)
+            MatOfFloat confidencesMat = new MatOfFloat(Converters.vector_float_to_Mat(confidences));
+            Rect2d[] boxesArray = boxes.toArray(new Rect2d[0]);
+            MatOfRect2d boxesMat = new MatOfRect2d(boxesArray);
+            MatOfInt indices = new MatOfInt();
+            Dnn.NMSBoxes(boxesMat, confidencesMat, confThreshold, nmsThreshold, indices);
 
-        TestYoloX detector = new TestYoloX(fileModel.getAbsolutePath());
-        detector.detect(fileImage.getAbsolutePath());
+            // Draw the boxes on the image
+            int[] ind = indices.toArray();
+            for (int idx : ind) {
+                Rect box = boxes.get(idx);
+                Imgproc.rectangle(image, box.tl(), box.br(), new Scalar(0, 255, 0), 2);
+            }
+
+            // Save the output image
+            String sImgOutputFname = fileImage.getAbsolutePath();
+           
+            String sFName = fileImage.getName();
+            int iExt = sFName.indexOf(".");
+            if(iExt>-1)
+            {
+            	String sOutputFolder = fileImage.getParentFile().getAbsolutePath();
+            	String sOutputFName = sFName.substring(0,iExt);
+            	String sOutputExt = sFName.substring(iExt);
+            	
+            	sImgOutputFname = sOutputFolder+"/"+sOutputFName+"_output"+sOutputExt;
+            }
+           
+            
+            Imgcodecs.imwrite(sImgOutputFname, image);
+            System.out.println("Output saved ="+sImgOutputFname);
+        }
+        
+        System.out.println();
+        System.out.println("detected boxes.size()="+boxes.size());
+
     }
 }
