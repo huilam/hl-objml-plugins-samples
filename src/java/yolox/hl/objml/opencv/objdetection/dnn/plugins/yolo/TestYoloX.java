@@ -53,6 +53,8 @@ System.out.println("image="+matShapeToString(image));
         Size sz = new Size(640, 640); // Assuming input size for YOLOX
         Mat blob = Dnn.blobFromImage(image, 1 / 255.0, sz, Scalar.all(0), true, false);
 System.out.println("blob="+matShapeToString(blob));
+
+
         // Set the input to the network
         net.setInput(blob);
 
