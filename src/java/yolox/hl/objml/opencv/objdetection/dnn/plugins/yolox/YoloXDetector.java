@@ -20,7 +20,6 @@ import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
-import hl.opencv.util.OpenCvUtil;
 import hl.plugin.image.IMLDetectionPlugin;
 
 public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
@@ -51,15 +50,20 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 			Mat matDnnImg = aMatInput.clone();
 			 // Convert from BGR to RGB
 	        Imgproc.cvtColor(matDnnImg, matDnnImg, Imgproc.COLOR_BGR2RGB);
+	        
+System.out.println();
+System.out.println("## Loaded Image="+matDnnImg);
 			
-			matDnnImg = Dnn.blobFromImage(matDnnImg, 1.0 / 255.0, sizeInput, new Scalar(0, 0, 0), true, false);
+			matDnnImg = Dnn.blobFromImage(matDnnImg, 1.0 / 255.0, sizeInput, Scalar.all(0), true, false);
 			NET_YOLOX.setInput(matDnnImg);
+System.out.println("## Dnn Input Image="+matDnnImg);
 
 	        // Run inference
 	        List<Mat> outputs = new ArrayList<>();
 	        NET_YOLOX.forward(outputs, NET_YOLOX.getUnconnectedOutLayersNames());
 	        
 	        Mat matResult = outputs.get(0);
+System.out.println("## Inference Output="+matResult);
 			
 	        List<Rect2d> outputBoxes 		= new ArrayList<>();
 	        List<Float> outputConfidences 	= new ArrayList<>();
@@ -71,11 +75,13 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	        
 	        decodePredictions(matResult, sizeInput, outputBoxes, outputConfidences, outputClassIds, fConfidenceThreshold);
 
-	        System.out.println("outputBoxes.WxH="+outputBoxes.size());
+System.out.println("## Detection Boxes="+outputBoxes.size());
 	        
 	        if(outputBoxes.size()>0)
 	        {
 		        MatOfInt indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
+
+System.out.println("## applyNMS indices="+indices);
 		        
 		        Mat matOutputImg = aMatInput.clone();
 		        
@@ -177,20 +183,6 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
                                 classIds.add(classId);
             }
         }
-    }
-    
-    private static int getClassId(float[] data) {
-        int startIndex = 5;  // assuming the class scores start after the bounding box coordinates and confidence
-        float maxScore = Float.MIN_VALUE;
-        int classId = -1;
-
-        for (int i = startIndex; i < data.length; i++) {
-            if (data[i] > maxScore) {
-                maxScore = data[i];
-                classId = i - startIndex;
-            }
-        }
-        return classId;
     }
 
 }
