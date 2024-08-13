@@ -14,7 +14,7 @@ public class BaseTester {
 	{
 		List<File> listImage = new ArrayList<File>();
 		
-		listImage.add(new File("./test/images/dog_bike_car.jpg"));
+		listImage.add(new File("./test/images/dog_bike_car.png"));
 		listImage.add(new File("./test/images/world-largest-selfie.jpg"));
 		listImage.add(new File("./test/images/dashcam_streetview.jpg"));
 		
