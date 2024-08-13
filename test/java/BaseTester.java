@@ -48,44 +48,46 @@ public class BaseTester {
 			e.printStackTrace();
 		}
 		
-		aDetector.isPluginOK();
-		
-		File fileFolder = new File("./test/images/output/"+System.currentTimeMillis());
-		
-		int i = 1;
-		
-		for(File fImg : getTestImageFiles())
+		if(aDetector.isPluginOK())
 		{
-			System.out.println();
-			System.out.print(" "+(i++)+". Perform test on "+fImg.getName()+" ... ");
 			
-			Mat matImg = MLDetectionBasePlugin.getCvMatFromFile(fImg);
+			File fileFolder = new File("./test/images/output/"+System.currentTimeMillis());
 			
-			Map<String, Object> mapResult = aDetector.detect(matImg, null);
+			int i = 1;
 			
-			System.out.println("     - Result : "+(mapResult!=null?mapResult.size():0));
-			
-			if(mapResult!=null)
+			for(File fImg : getTestImageFiles())
 			{
-				Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_MAT_OUTPUT);
+				System.out.println();
+				System.out.print(" "+(i++)+". Perform test on "+fImg.getName()+" ... ");
 				
-				if(matOutput!=null && !matOutput.empty())
+				Mat matImg = MLDetectionBasePlugin.getCvMatFromFile(fImg);
+				
+				Map<String, Object> mapResult = aDetector.detect(matImg, null);
+				
+				System.out.println("     - Result : "+(mapResult!=null?mapResult.size():0));
+				
+				if(mapResult!=null)
 				{
-					String savedFileName = 
-							saveImage(aDetector.getPluginName(), 
-							matOutput, 
-							fileFolder, fImg.getName());
+					Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_MAT_OUTPUT);
 					
-					if(savedFileName!=null)
-						System.out.println("     - [saved] "+savedFileName);
-				}
-				else
-				{
-					int idx = 0;
-					for(String key : mapResult.keySet())
+					if(matOutput!=null && !matOutput.empty())
 					{
-						System.out.println("    ["+idx+"] "+key+" - "+mapResult.get(key));
-						idx++;
+						String savedFileName = 
+								saveImage(aDetector.getPluginName(), 
+								matOutput, 
+								fileFolder, fImg.getName());
+						
+						if(savedFileName!=null)
+							System.out.println("     - [saved] "+savedFileName);
+					}
+					else
+					{
+						int idx = 0;
+						for(String key : mapResult.keySet())
+						{
+							System.out.println("    ["+idx+"] "+key+" - "+mapResult.get(key));
+							idx++;
+						}
 					}
 				}
 			}
