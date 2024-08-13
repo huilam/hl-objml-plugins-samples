@@ -146,16 +146,20 @@ System.out.println("## applyNMS indices="+indices);
     		List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
     		float CONFIDENCE_THRESHOLD) {
     	
-        int width = (int) imageSize.width;
-        int height = (int) imageSize.height;
+        int width 	= (int) imageSize.width;
+        int height 	= (int) imageSize.height;
 
-        int numDetections = (int) output.size(1);
-        int numClasses = (int) output.size(2) - 5; // Subtract 5 for bbox + confidence
+        int numDetections 	= (int) output.size(1);
+        int numClasses 		= (int) output.size(2) - 5; // Subtract 5 for bbox + confidence
 
+        if(numClasses != OBJ_CLASSESS.size())
+        {
+        	System.err.println("[ERR] Detection vs Expected obj-classes - "+numClasses+" vs "+OBJ_CLASSESS.size());
+        	return;
+        }
+        
         for (int i = 0; i < numDetections; i++) {
             Mat row = output.row(0);
-            
-           // Mat row = output.row(0).rowRange(i, i + 1);
             
             float[] data = new float[(int) row.total()];
             row.get(0, 0, data);
