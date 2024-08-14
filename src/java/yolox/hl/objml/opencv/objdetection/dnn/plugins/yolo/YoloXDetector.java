@@ -34,7 +34,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
     private static float DEF_NMS_THRESHOLD 			= 0.4f;
     private static Size DEF_INPUT_SIZE 				= new Size(640, 640);
     
-    private static boolean IMAGE_PADDING 			= false;
+    private static boolean IMAGE_PADDING 			= true;
 
 
 	@Override
@@ -106,11 +106,11 @@ System.out.println("@@@ postProcess Output="+matResult);
 
 System.out.println("@@@   Detection="+outputBoxes.size());
 	        
-			Mat matOutputImg = matInputImg.clone();
-			OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
-			
 	        if(outputBoxes.size()>0)
 	        {
+				Mat matOutputImg = matInputImg.clone();
+				OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
+				
 		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
 System.out.println("@@@   applyNMS="+indices.length);
@@ -127,9 +127,9 @@ System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());
 		            Imgproc.rectangle(matOutputImg, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
 		            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
 		        }
+				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutputImg);
 	        }
 	        
-			mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutputImg);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -306,8 +306,8 @@ System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());
                 double width   = data[2] * dImgW;
                 double height  = data[3] * dImgH;
                 
-                double left = centerX;// - (width / 2);
-                double top 	= centerY;// - (height / 2);
+                double left = centerX - (width / 2);
+                double top 	= centerY - (height / 2);
                 
                 long lTop  		= (long) Math.floor((top<0? 0: top));
                 long lLeft  	= (long) Math.floor((left<0? 0: left));
