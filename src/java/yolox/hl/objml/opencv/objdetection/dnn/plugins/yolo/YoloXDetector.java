@@ -286,8 +286,8 @@ System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
 	        float CONFIDENCE_THRESHOLD) {
 
-		double dImgW = 1.0; //(int) imageSize.width;
-		double dImgH = 1.0; //(int) imageSize.height;
+		double dImgW = imageSize.width;
+		double dImgH = imageSize.height;
 	    
         for (int i = 0; i < matResult.rows(); i++) 
         {
@@ -296,21 +296,21 @@ System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());
             Core.MinMaxLocResult mm = Core.minMaxLoc(scores);
             float confidence = (float) mm.maxVal;
             
-            if (confidence > CONFIDENCE_THRESHOLD) {
+            if (confidence >= CONFIDENCE_THRESHOLD) {
                 int classId = (int) mm.maxLoc.x;
                 float[] data = new float[4];
                 row.colRange(0, 4).get(0, 0, data);
 
-                double centerX = data[0] * dImgW;
-                double centerY = data[1] * dImgH;
-                double width   = data[2] * dImgW;
-                double height  = data[3] * dImgH;
+                double centerX = data[0];// * dImgW;
+                double centerY = data[1];// * dImgH;
+                double width   = data[2];// * dImgW;
+                double height  = data[3];// * dImgH;
                 
                 double left = centerX - (width / 2);
                 double top 	= centerY - (height / 2);
                 
-                long lTop  		= (long) Math.floor((top<0? 0: top));
                 long lLeft  	= (long) Math.floor((left<0? 0: left));
+                long lTop  		= (long) Math.floor((top<0? 0: top));
                 long lWidth 	= (long) Math.floor(width);
         		long lHeight 	= (long) Math.floor(height);
 

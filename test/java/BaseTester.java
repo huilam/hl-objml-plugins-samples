@@ -19,6 +19,7 @@ public class BaseTester {
 		listImage.add(new File("./test/images/dog_bike_car.png"));
 		listImage.add(new File("./test/images/world-largest-selfie.jpg"));
 		listImage.add(new File("./test/images/dashcam_streetview.jpg"));
+		listImage.add(new File("./test/images/coco2017-id216861.png"));
 		
 		return listImage;
 	}
