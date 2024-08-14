@@ -2,6 +2,8 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+
 import org.opencv.core.Mat;
 
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
@@ -29,6 +31,8 @@ public class BaseTester {
 			aOutputFolder.mkdirs();
 		
 		String sOutputFileName = aPluginName+"_"+aOrigImgFileName;
+		
+		sOutputFileName += ".png";
 	
 		boolean isSaved = OpenCvUtil.saveImageAsFile(aMatImage, aOutputFolder.getAbsolutePath()+"/"+sOutputFileName);
 		
@@ -50,6 +54,25 @@ public class BaseTester {
 		
 		if(aDetector.isPluginOK())
 		{
+			Properties prop = aDetector.getPluginProps();
+			
+			System.out.println("Detector : "+aDetector.getPluginName()+" ("+aDetector.getPluginMLModelFileName()+")");
+			
+			
+			int iKeyPrefix = "objml.mlmodel.".length();
+			for(Object oKey : prop.keySet())
+			{
+				String sVal = prop.getProperty(oKey.toString());
+				if(sVal!=null && sVal.trim().length()>0)
+				{
+					sVal = sVal.replace("\n", " ");
+					
+					if(sVal.length()>60) sVal = sVal.substring(0, 60)+" ... (truncated)";
+					
+					String sKey = oKey.toString().substring(iKeyPrefix);
+					System.out.println("  - "+sKey+" : "+sVal);
+				}
+			}
 			
 			File fileFolder = new File("./test/images/output/"+System.currentTimeMillis());
 			
