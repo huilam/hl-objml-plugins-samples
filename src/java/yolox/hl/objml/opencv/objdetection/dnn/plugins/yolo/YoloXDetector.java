@@ -21,18 +21,20 @@ import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
+import hl.opencv.util.OpenCvUtil;
 import hl.plugin.image.IMLDetectionPlugin;
 
 public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 	
-	private static Net NET_YOLOX = null;
+	private static final int[] STRIDES 	=  {8, 16, 32};
 	
-	private static final int[] STRIDES =  {8, 16, 32};
-	private static List<String> OBJ_CLASSESS = new ArrayList<String>();
-	
-    private static float DEF_CONFIDENCE_THRESHOLD = 0.5f;
-    private static float DEF_NMS_THRESHOLD 		= 0.4f;
-    private static Size DEF_INPUT_SIZE 			= new Size(640, 640);
+	private static Net NET_YOLOX 					= null;
+	private static List<String> OBJ_CLASSESS 		= new ArrayList<String>();
+    private static float DEF_CONFIDENCE_THRESHOLD 	= 0.5f;
+    private static float DEF_NMS_THRESHOLD 			= 0.4f;
+    private static Size DEF_INPUT_SIZE 				= new Size(640, 640);
+    
+    private static boolean IMAGE_PADDING 			= false;
 
 
 	@Override
@@ -48,17 +50,38 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	        {
 				init();
 	        }
-			
 			Size sizeInput = DEF_INPUT_SIZE;
-			Mat matDnnImg = aMatInput.clone();
+			
+			Mat matInputImg = aMatInput.clone();
+					
+			if(IMAGE_PADDING)
+			{
+				Mat matPaddedImg = null;
+				Mat matROI = null;
+				try {
+					
+					int iMaxPixels = Math.max(aMatInput.width(), aMatInput.height());
+					matPaddedImg = Mat.zeros(new Size(iMaxPixels,iMaxPixels), aMatInput.type());
+					matROI = matPaddedImg.submat(0,aMatInput.rows(),0,aMatInput.cols());
+					aMatInput.copyTo(matROI);
+					
+					matInputImg = matPaddedImg.clone();
+				}
+				finally
+				{
+					if(matPaddedImg!=null)
+						matPaddedImg.release();
+					if(matROI!=null)
+						matROI.release();
+				}
+			}
 			
 			 // Convert from BGR to RGB
-	        Imgproc.cvtColor(matDnnImg, matDnnImg, Imgproc.COLOR_BGR2RGB);
+	        //Imgproc.cvtColor(matDnnImg, matDnnImg, Imgproc.COLOR_BGR2RGB);
 	        
-System.out.println();
-System.out.println("## Loaded Image="+matDnnImg);
+System.out.println("## Loaded aMatInput="+aMatInput);
 			
-			matDnnImg = Dnn.blobFromImage(matDnnImg, 1.0 / 255.0, sizeInput, Scalar.all(0), true, false);
+			Mat matDnnImg = Dnn.blobFromImage(matInputImg, 1.0 / 255.0, sizeInput, Scalar.all(0), true, false);
 			NET_YOLOX.setInput(matDnnImg);
 System.out.println("## Dnn Input Image="+matDnnImg);
 
@@ -70,28 +93,27 @@ System.out.println("## Dnn Input Image="+matDnnImg);
 System.out.println("@@@ Inference Output="+matResult);
 			
 			matResult = postProcess(matResult, sizeInput);
+System.out.println("@@@ postProcess Output="+matResult);
 
+	        float fConfidenceThreshold = DEF_CONFIDENCE_THRESHOLD;
+	        float fNMSThreshold = DEF_NMS_THRESHOLD;
+	        
 	        List<Rect2d> outputBoxes 		= new ArrayList<>();
 	        List<Float> outputConfidences 	= new ArrayList<>();
 	        List<Integer> outputClassIds 	= new ArrayList<>();
 	        
-	       
-	        float fConfidenceThreshold = DEF_CONFIDENCE_THRESHOLD;
-	        float fNMSThreshold = DEF_NMS_THRESHOLD;
-	        
 	        decodePredictions(matResult, sizeInput, outputBoxes, outputConfidences, outputClassIds, fConfidenceThreshold);
 
-System.out.println("@@@   Detection Boxes="+outputBoxes.size());
-System.out.println("@@@   Detection Confidences="+outputConfidences.size());
-System.out.println("@@@   Detection ClassIds="+outputClassIds.size());
+System.out.println("@@@   Detection="+outputBoxes.size());
 	        
+			Mat matOutputImg = matInputImg.clone();
+			OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
+			
 	        if(outputBoxes.size()>0)
 	        {
 		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
-System.out.println("## applyNMS indices.length="+indices.length);
-		        
-		        Mat matOutputImg = aMatInput.clone();
+System.out.println("@@@   applyNMS="+indices.length);
 		        
 		        // Draw bounding boxes
 		        for (int idx : indices) {
@@ -101,14 +123,13 @@ System.out.println("## applyNMS indices.length="+indices.length);
 		            
 		            String label = OBJ_CLASSESS.get(classId) + ": " + String.format("%.2f", outputConfidences.get(idx));
 		            
-System.out.println("idx="+label+" "+box.tl()+" "+box.br());		            
+System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());		            
 		            Imgproc.rectangle(matOutputImg, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
 		            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
 		        }
-				
-				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutputImg);
-				
 	        }
+	        
+			mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutputImg);
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -188,28 +209,24 @@ System.out.println("idx="+label+" "+box.tl()+" "+box.br());
 		}
 	}
 	
-	private static Mat postProcess(Mat matOutputDetections, Size inputSize)
+	private static Mat postProcess(Mat matOutputDetections, Size sizeInput)
 	{
 		//https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/utils/demo_utils.py
 			
 		int detectionCount = 0;
+		matOutputDetections = matOutputDetections.reshape(1, new int[] {8400, 85});
+
 		int[] hSizes = new int[STRIDES.length];
 		int[] wSizes = new int[STRIDES.length];
 		
 		for (int i=0; i<STRIDES.length; i++) {
-			hSizes[i] = Math.floorDiv((int)inputSize.height, STRIDES[i]);
-			wSizes[i] = Math.floorDiv((int)inputSize.width, STRIDES[i]);
+			hSizes[i] = Math.floorDiv((int)sizeInput.height, STRIDES[i]);
+			wSizes[i] = Math.floorDiv((int)sizeInput.width, STRIDES[i]);
+			//
 			detectionCount += hSizes[i]*wSizes[i];
 		}
-		
-		int[] matOutputDetectionsShape = {8400, 85};
-		matOutputDetections = matOutputDetections.reshape(1, matOutputDetectionsShape);
 
-		
-		int iOutputDetectionSize = matOutputDetections.size(0);
-		
-		if (detectionCount != iOutputDetectionSize) {
-			System.err.println("The ML model output is not as expected ! detectionCount:"+detectionCount+" != iOutputDetectionSize:"+iOutputDetectionSize);
+		if (detectionCount != matOutputDetections.size(0)) {
 			return null;
 		}
 		///////////////////////
@@ -269,9 +286,11 @@ System.out.println("idx="+label+" "+box.tl()+" "+box.br());
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
 	        float CONFIDENCE_THRESHOLD) {
 
-	    int iImgW = (int) imageSize.width;
-	    int iImgH = (int) imageSize.height;
-        for (int i = 0; i < matResult.rows(); i++) {
+		double dImgW = 1.0; //(int) imageSize.width;
+		double dImgH = 1.0; //(int) imageSize.height;
+	    
+        for (int i = 0; i < matResult.rows(); i++) 
+        {
             Mat row = matResult.row(i);
             Mat scores = row.colRange(5, matResult.cols());
             Core.MinMaxLocResult mm = Core.minMaxLoc(scores);
@@ -282,22 +301,22 @@ System.out.println("idx="+label+" "+box.tl()+" "+box.br());
                 float[] data = new float[4];
                 row.colRange(0, 4).get(0, 0, data);
 
-                int centerX = (int) (data[0]);
-                int centerY = (int) (data[1]);
-                int width 	= (int) (data[2]);
-                int height 	= (int) (data[3]);
+                double centerX = data[0] * dImgW;
+                double centerY = data[1] * dImgH;
+                double width   = data[2] * dImgW;
+                double height  = data[3] * dImgH;
                 
-                int left 	= centerX - width / 2;
-                int top 	= centerY - height / 2;
+                double left = centerX;// - (width / 2);
+                double top 	= centerY;// - (height / 2);
                 
-                top = top<0? 0: top;
-                left = left<0? 0: left;
-                width = left+width<iImgW? width: iImgW-left-1;
-        		height = top+height<iImgH? height: iImgH-top-1;
+                long lTop  		= (long) Math.floor((top<0? 0: top));
+                long lLeft  	= (long) Math.floor((left<0? 0: left));
+                long lWidth 	= (long) Math.floor(width);
+        		long lHeight 	= (long) Math.floor(height);
 
                 classIds.add(classId);
                 confidences.add(confidence);
-                boxes.add(new Rect2d(left, top, width, height));
+                boxes.add(new Rect2d(lLeft, lTop, lWidth, lHeight));
             }
         }
 	}
