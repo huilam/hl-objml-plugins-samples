@@ -34,7 +34,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
     private static float DEF_NMS_THRESHOLD 			= 0.4f;
     private static Size DEF_INPUT_SIZE 				= new Size(640, 640);
     
-    private static boolean IMAGE_PADDING 			= true;
+    private static boolean IMAGE_PADDING 			= false;
 
 
 	@Override

@@ -1,27 +1,32 @@
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
 import org.opencv.core.Mat;
 
+import hl.common.FileUtil;
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 import hl.plugin.image.IMLDetectionPlugin;
 
 public class BaseTester {
 	
-	protected static List<File> getTestImageFiles()
+	protected static File[] getTestImageFiles()
 	{
-		List<File> listImage = new ArrayList<File>();
+		File folderImages = new File("./test/images/");
 		
-		listImage.add(new File("./test/images/dog_bike_car.png"));
-		listImage.add(new File("./test/images/world-largest-selfie.jpg"));
-		listImage.add(new File("./test/images/dashcam_streetview.jpg"));
-		listImage.add(new File("./test/images/coco2017-id216861.png"));
+		if(folderImages.isDirectory())
+		{
+			return FileUtil.getFilesWithExtensions(folderImages, 
+					new String[]{
+							".jpg",
+							".png"});
+		}
+		else
+		{
+			return null;
+		}
 		
-		return listImage;
 	}
 	
 	protected static String saveImage(
