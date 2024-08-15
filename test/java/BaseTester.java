@@ -24,7 +24,7 @@ public class BaseTester {
 		}
 		else
 		{
-			return null;
+			return new File[] {};
 		}
 		
 	}
