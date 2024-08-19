@@ -30,11 +30,12 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	
 	private static Net NET_YOLOX 					= null;
 	private static List<String> OBJ_CLASSESS 		= new ArrayList<String>();
-    private static float DEF_CONFIDENCE_THRESHOLD 	= 0.5f;
-    private static float DEF_NMS_THRESHOLD 			= 0.4f;
+    private static float DEF_CONFIDENCE_THRESHOLD 	= 0.9f;
+    private static float DEF_NMS_THRESHOLD 			= 0.8f;
     private static Size DEF_INPUT_SIZE 				= new Size(640, 640);
     
-    private static boolean IMAGE_PADDING 			= true;
+    private static boolean SWAP_RB_CHANNEL			= false;
+    private static boolean APPLY_IMG_PADDING 		= true;
 
 
 	@Override
@@ -54,7 +55,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 			
 			Mat matInputImg = aMatInput.clone();
 					
-			if(IMAGE_PADDING)
+			if(APPLY_IMG_PADDING)
 			{
 				Mat matPaddedImg = null;
 				Mat matROI = null;
@@ -77,9 +78,11 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 			}
 			
 System.out.println("## Loaded aMatInput="+aMatInput);
-			
 			// Convert from BGR to RGB
-			//Imgproc.cvtColor(matInputImg, matInputImg, Imgproc.COLOR_BGR2RGB);
+			if(SWAP_RB_CHANNEL)
+			{
+				Imgproc.cvtColor(matInputImg, matInputImg, Imgproc.COLOR_BGR2RGB);
+			}
 			
 			Mat matDnnImg = Dnn.blobFromImage(matInputImg, 1, sizeInput, Scalar.all(0), true, false);
 			NET_YOLOX.setInput(matDnnImg);
@@ -200,7 +203,7 @@ System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());
 					DEF_INPUT_SIZE = new Size(dWidth,dHeight);
 				}
 						
-				}
+			}
 			//System.out.println();
 			//System.out.println("*init* DEF_CONFIDENCE_THRESHOLD="+DEF_CONFIDENCE_THRESHOLD);
 			//System.out.println("*init* DEF_NMS_THRESHOLD="+DEF_NMS_THRESHOLD);
@@ -285,9 +288,6 @@ System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());
 	        Mat matResult, Size imageSize, 
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
 	        float CONFIDENCE_THRESHOLD) {
-
-		double dImgW = imageSize.width;
-		double dImgH = imageSize.height;
 	    
         for (int i = 0; i < matResult.rows(); i++) 
         {
@@ -301,10 +301,10 @@ System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());
                 float[] data = new float[4];
                 row.colRange(0, 4).get(0, 0, data);
 
-                double centerX = data[0];// * dImgW;
-                double centerY = data[1];// * dImgH;
-                double width   = data[2];// * dImgW;
-                double height  = data[3];// * dImgH;
+                double centerX = data[0];
+                double centerY = data[1];
+                double width   = data[2];
+                double height  = data[3];
                 
                 double left = centerX - (width / 2);
                 double top 	= centerY - (height / 2);
