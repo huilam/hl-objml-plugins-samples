@@ -34,7 +34,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
     private static float DEF_NMS_THRESHOLD 			= 0.4f;
     private static Size DEF_INPUT_SIZE 				= new Size(640, 640);
     
-    private static boolean IMAGE_PADDING 			= false;
+    private static boolean IMAGE_PADDING 			= true;
 
 
 	@Override
@@ -81,7 +81,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	        
 System.out.println("## Loaded aMatInput="+aMatInput);
 			
-			Mat matDnnImg = Dnn.blobFromImage(matInputImg, 1.0 / 255.0, sizeInput, Scalar.all(0), true, false);
+			Mat matDnnImg = Dnn.blobFromImage(matInputImg, 1, sizeInput, Scalar.all(0), true, false);
 			NET_YOLOX.setInput(matDnnImg);
 System.out.println("## Dnn Input Image="+matDnnImg);
 
