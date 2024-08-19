@@ -29,21 +29,18 @@ public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionP
 	@Override
 	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
-		try {
-			Mat matOutput = faceDetect(aMatInput);
-			if(matOutput!=null && !matOutput.empty())
-			{
-				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		
+		if(aMatInput!=null)
+		{
+			mapResult = faceDetect(aMatInput);
 		}
+		
 		return mapResult;
 	}
 	
 	/////
-	private Mat faceDetect(Mat aMatInput) throws Exception{
+	private Map<String, Object>  faceDetect(Mat aMatInput) {
+		Map<String, Object> mapResult = new HashMap<String, Object>();
 		
 		if(!isPluginOK() || aMatInput==null)
 			return null;
@@ -51,16 +48,11 @@ public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionP
 		Mat srcImg 	= null;
 		Mat faces 	= null;
 		
-		System.out.println("objml.mlmodel.detection.support-labels="+getPluginProps().getProperty("objml.mlmodel.detection.support-labels"));
-		
-		
 		
 		try {
 	        srcImg 		= aMatInput.clone();
 	        OpenCvUtil.removeAlphaChannel(srcImg);
 	       
-	        long lStartMs 	= 0;
-	        
 	        File fileModel 	= new File(_model_filename);
 			
 	        // 0: default, 1: Halide, 2: Intel's Inference Engine, 3: OpenCV, 4: VKCOM, 5: CUDA
@@ -73,22 +65,16 @@ public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionP
 	                   
 	        if(faceDetectorYN==null)
 	        {        
-	            lStartMs = System.currentTimeMillis();
 		        faceDetectorYN = FaceDetectorYN.create(
 		        		fileModel.getAbsolutePath(),"", 
 		        		new Size(320, 320),scoreThreshold, 
 		        		nmsThreshold, topK, backendId, targetId);
-	//	        System.out.println();
-	//	        System.out.println(" - "+fileModel.getName()+" loaded : "+(System.currentTimeMillis()-lStartMs)+"ms");
 		     }
 	        
-	        
-	        lStartMs = System.currentTimeMillis();
 	        faceDetectorYN.setInputSize(srcImg.size());
 	        
 	        faces = new Mat();
 	        faceDetectorYN.detect(srcImg,faces);
-	        System.out.println(" - Detected face = "+faces.height()+" : "+(System.currentTimeMillis()-lStartMs)+"ms");
 	        for (int i = 0; i < faces.height(); i++)
 	        {
 	        	Rect r = new Rect((int) (faces.get(i, 0)[0]), (int)(faces.get(i, 1)[0]), (int)(faces.get(i, 2)[0]), (int)(faces.get(i, 3)[0]));      	
@@ -109,13 +95,23 @@ public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionP
 	        	}
 	        	srcImg = null;
 	        }
+	        
+	        if(faces!=null)
+	        	mapResult.put(IMLDetectionPlugin._KEY_TOTAL_DETECTION, faces.height());
+	        
+	        if(srcImg!=null)
+	        	mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, srcImg);
+	        
+	    	mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, scoreThreshold);
+			mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, nmsThreshold);
+	        
 		}finally
 		{
 			
 			if(faces!=null)
 				faces.release();
 		}
-		return srcImg;
+		return mapResult;
     }
 
 }

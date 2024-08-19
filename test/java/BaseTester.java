@@ -91,12 +91,21 @@ public class BaseTester {
 				
 				Mat matImg = MLDetectionBasePlugin.getCvMatFromFile(fImg);
 				
+				long lInferenceStart = System.currentTimeMillis();
 				Map<String, Object> mapResult = aDetector.detect(matImg, null);
+				long lInferenceEnd = System.currentTimeMillis();
 				
 				if(mapResult!=null)
 				{
+					long lInferenceMs =  lInferenceEnd-lInferenceStart;
+					
 					Integer outputTotalDetections = (Integer)mapResult.get(IMLDetectionPlugin._KEY_TOTAL_DETECTION);
-					System.out.println("\n     - Result : "+(outputTotalDetections==null?"(missing data)":outputTotalDetections));
+					
+					System.out.println();
+					System.out.println("     - Inference Model File : "+new File(aDetector.getPluginMLModelFileName()).getName());
+					System.out.println("     - Inference Input Size : "+matImg.size().toString());
+					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
+					System.out.println("     - Result : "+(outputTotalDetections==null?"(missing data)":outputTotalDetections));
 					
 					Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_MAT_OUTPUT);
 					
@@ -109,15 +118,6 @@ public class BaseTester {
 						
 						if(savedFileName!=null)
 							System.out.println("     - [saved] "+savedFileName);
-					}
-					else
-					{
-						int idx = 0;
-						for(String key : mapResult.keySet())
-						{
-							System.out.println("    ["+idx+"] "+key+" - "+mapResult.get(key));
-							idx++;
-						}
 					}
 				}
 				else

@@ -31,6 +31,10 @@ public class Upscale extends MLDetectionBasePlugin implements IMLDetectionPlugin
 			if(matOutput!=null)
 			{
 				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
+				mapResult.put(IMLDetectionPlugin._KEY_TOTAL_DETECTION, 1);
+				//
+				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, -1);
+				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, -1);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
