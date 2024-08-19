@@ -61,7 +61,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 				try {
 					
 					int iMaxPixels = Math.max(aMatInput.width(), aMatInput.height());
-					matPaddedImg = Mat.zeros(new Size(iMaxPixels,iMaxPixels), aMatInput.type());
+					matPaddedImg = new Mat(new Size(iMaxPixels,iMaxPixels), aMatInput.type(), Scalar.all(0));
 					matROI = matPaddedImg.submat(0,aMatInput.rows(),0,aMatInput.cols());
 					aMatInput.copyTo(matROI);
 					
@@ -76,10 +76,10 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 				}
 			}
 			
-			 // Convert from BGR to RGB
-	        //Imgproc.cvtColor(matDnnImg, matDnnImg, Imgproc.COLOR_BGR2RGB);
-	        
 System.out.println("## Loaded aMatInput="+aMatInput);
+			
+			// Convert from BGR to RGB
+			//Imgproc.cvtColor(matInputImg, matInputImg, Imgproc.COLOR_BGR2RGB);
 			
 			Mat matDnnImg = Dnn.blobFromImage(matInputImg, 1, sizeInput, Scalar.all(0), true, false);
 			NET_YOLOX.setInput(matDnnImg);
