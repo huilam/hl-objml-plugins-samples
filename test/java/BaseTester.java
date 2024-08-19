@@ -93,10 +93,11 @@ public class BaseTester {
 				
 				Map<String, Object> mapResult = aDetector.detect(matImg, null);
 				
-				System.out.println("     - Result : "+(mapResult!=null?mapResult.size():0));
-				
 				if(mapResult!=null)
 				{
+					Integer outputTotalDetections = (Integer)mapResult.get(IMLDetectionPlugin._KEY_TOTAL_DETECTION);
+					System.out.println("\n     - Result : "+(outputTotalDetections==null?"(missing data)":outputTotalDetections));
+					
 					Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_MAT_OUTPUT);
 					
 					if(matOutput!=null && !matOutput.empty())
@@ -118,6 +119,10 @@ public class BaseTester {
 							idx++;
 						}
 					}
+				}
+				else
+				{
+					System.out.println("     - No result found.");
 				}
 			}
 			

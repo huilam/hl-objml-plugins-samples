@@ -43,7 +43,13 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 		return super.isPluginOK(getClass());
 	}
 
-	@Override
+	/**
+	 *  ONNX Model = https://github.com/Megvii-BaseDetection/YOLOX/tree/main/demo/ONNXRuntime
+	 *  Processing Reference
+	 *  - https://github.com/Megvii-BaseDetection/YOLOX/blob/main/demo/ONNXRuntime/onnx_inference.py
+	 *  - https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/data/data_augment.py
+	 *  - https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/utils/demo_utils.py
+	 */
 	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		try {
@@ -77,7 +83,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 				}
 			}
 			
-System.out.println("## Loaded aMatInput="+aMatInput);
+//System.out.println("## Loaded aMatInput="+aMatInput);
 			// Convert from BGR to RGB
 			if(SWAP_RB_CHANNEL)
 			{
@@ -86,17 +92,17 @@ System.out.println("## Loaded aMatInput="+aMatInput);
 			
 			Mat matDnnImg = Dnn.blobFromImage(matInputImg, 1, sizeInput, Scalar.all(0), true, false);
 			NET_YOLOX.setInput(matDnnImg);
-System.out.println("## Dnn Input Image="+matDnnImg);
+//System.out.println("## Dnn Input Image="+matDnnImg);
 
 	        // Run inference
 	        List<Mat> outputs = new ArrayList<>();
 	        NET_YOLOX.forward(outputs, NET_YOLOX.getUnconnectedOutLayersNames());
 	        
 	        Mat matResult = outputs.get(0);
-System.out.println("@@@ Inference Output="+matResult);
+//System.out.println("@@@ Inference Output="+matResult);
 			
 			matResult = postProcess(matResult, sizeInput);
-System.out.println("@@@ postProcess Output="+matResult);
+//System.out.println("@@@ postProcess Output="+matResult);
 
 	        float fConfidenceThreshold = DEF_CONFIDENCE_THRESHOLD;
 	        float fNMSThreshold = DEF_NMS_THRESHOLD;
@@ -107,7 +113,7 @@ System.out.println("@@@ postProcess Output="+matResult);
 	        
 	        decodePredictions(matResult, sizeInput, outputBoxes, outputConfidences, outputClassIds, fConfidenceThreshold);
 
-System.out.println("@@@   Detection="+outputBoxes.size());
+//System.out.println("@@@   Detection="+outputBoxes.size());
 	        
 	        if(outputBoxes.size()>0)
 	        {
@@ -116,7 +122,7 @@ System.out.println("@@@   Detection="+outputBoxes.size());
 				
 		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
-System.out.println("@@@   applyNMS="+indices.length);
+//System.out.println("@@@   applyNMS="+indices.length);
 		        
 		        // Draw bounding boxes
 		        for (int idx : indices) {
@@ -126,11 +132,16 @@ System.out.println("@@@   applyNMS="+indices.length);
 		            
 		            String label = OBJ_CLASSESS.get(classId) + ": " + String.format("%.2f", outputConfidences.get(idx));
 		            
-System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());		            
+//System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());		            
 		            Imgproc.rectangle(matOutputImg, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
 		            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
 		        }
 				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutputImg);
+				mapResult.put(IMLDetectionPlugin._KEY_TOTAL_DETECTION, indices.length);
+				//
+				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
+				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
+				//
 	        }
 	        
 		} catch (Exception e) {
@@ -214,8 +225,6 @@ System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());
 	
 	private static Mat postProcess(Mat matOutputDetections, Size sizeInput)
 	{
-		//https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/utils/demo_utils.py
-			
 		int detectionCount = 0;
 		matOutputDetections = matOutputDetections.reshape(1, new int[] {8400, 85});
 
