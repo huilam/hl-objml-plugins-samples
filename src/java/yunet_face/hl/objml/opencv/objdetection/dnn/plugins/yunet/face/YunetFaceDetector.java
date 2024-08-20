@@ -8,6 +8,7 @@ import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
+import org.opencv.core.Rect2d;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
@@ -16,8 +17,9 @@ import org.opencv.objdetect.FaceDetectorYN;
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 import hl.plugin.image.IMLDetectionPlugin;
+import hl.plugin.image.ObjDetection;
 
-public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
+public class YunetFaceDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 
 	private FaceDetectorYN faceDetectorYN = null;
 	
@@ -75,32 +77,47 @@ public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionP
 	        
 	        faces = new Mat();
 	        faceDetectorYN.detect(srcImg,faces);
-	        for (int i = 0; i < faces.height(); i++)
-	        {
-	        	Rect r = new Rect((int) (faces.get(i, 0)[0]), (int)(faces.get(i, 1)[0]), (int)(faces.get(i, 2)[0]), (int)(faces.get(i, 3)[0]));      	
-	            Imgproc.rectangle(srcImg, r, new Scalar(0, 255, 0), 2);
-	
-	            Imgproc.circle(srcImg, new Point(faces.get(i, 4)[0], faces.get(i, 5)[0]), 2,new Scalar(255, 0, 0), 2);
-	            Imgproc.circle(srcImg, new Point(faces.get(i, 6)[0], faces.get(i, 7)[0]), 2, new Scalar(0, 0, 255), 2);
-	            Imgproc.circle(srcImg, new Point(faces.get(i, 8)[0], faces.get(i, 9)[0]), 2, new Scalar(0, 255, 0), 2);
-	            Imgproc.circle(srcImg, new Point(faces.get(i, 10)[0], faces.get(i, 11)[0]), 2, new Scalar(255, 0, 255), 2);
-	            Imgproc.circle(srcImg, new Point(faces.get(i, 12)[0], faces.get(i, 13)[0]), 2, new Scalar(0, 255, 255), 2);
-	        }
-	        
-	        if(faces.height()<=0)
-	        {
-	        	if(srcImg!=null)
-	        	{
-	        		srcImg.release();
-	        	}
-	        	srcImg = null;
-	        }
 	        
 	        if(faces!=null)
+	        {
+	        	ObjDetection objs = new ObjDetection();
+	        	 
+		        for (int i = 0; i < faces.height(); i++)
+		        {
+		        	int iX = (int) (faces.get(i, 0)[0]);
+		        	int iY = (int) (faces.get(i, 1)[0]);
+		        	int iW = (int) (faces.get(i, 2)[0]);
+		        	int iH = (int) (faces.get(i, 3)[0]);
+		        	
+		        	Rect r = new Rect(iX, iY, iW, iH);      	
+		            Imgproc.rectangle(srcImg, r, new Scalar(0, 255, 0), 2);
+		            double confidence = faces.get(i, 14)[0];
+		           
+		            objs.addDetectedObj(0, "face", confidence, new Rect2d(r.x, r.y, r.width, r.height));
+		
+		            Point leftEye = new Point(faces.get(i, 4)[0], faces.get(i, 5)[0]);
+		            Point rightEye = new Point(faces.get(i, 6)[0], faces.get(i, 7)[0]);
+		            Imgproc.circle(srcImg, leftEye, 2, new Scalar(255, 0, 0), 2); //Blue
+		            Imgproc.circle(srcImg, rightEye, 2, new Scalar(0, 0, 255), 2); //Red
+		            
+		            Point nose = new Point(faces.get(i, 8)[0], faces.get(i, 9)[0]);
+		            Imgproc.circle(srcImg, nose, 2, new Scalar(0, 255, 0), 2);
+		            
+		            
+		            Point leftMouth = new Point(faces.get(i, 10)[0], faces.get(i, 11)[0]);
+		            Point rightMouth = new Point(faces.get(i, 12)[0], faces.get(i, 13)[0]);
+		            Imgproc.circle(srcImg, leftMouth, 2, new Scalar(255, 0, 255), 2);
+		            Imgproc.circle(srcImg, rightMouth, 2, new Scalar(0, 255, 255), 2);
+		        }
+	        
+	        	mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, objs.toJson());
 	        	mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT, faces.height());
+	        }
 	        
 	        if(srcImg!=null)
-	        	mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, srcImg);
+	        {
+	        	mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, srcImg.clone());
+	        }
 	        
 	    	mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, scoreThreshold);
 			mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, nmsThreshold);
@@ -109,7 +126,14 @@ public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionP
 		{
 			
 			if(faces!=null)
+			{
 				faces.release();
+			}
+			
+			if(srcImg!=null)
+        	{
+        		srcImg.release();
+        	}
 		}
 		return mapResult;
     }

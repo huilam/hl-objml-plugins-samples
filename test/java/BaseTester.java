@@ -109,7 +109,7 @@ public class BaseTester {
 					
 					Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT);
 					
-					if(matOutput!=null && !matOutput.empty())
+					if(matOutput!=null && !matOutput.empty() && outputTotalDetections>0)
 					{
 						String savedFileName = 
 								saveImage(aDetector.getPluginName(), 
