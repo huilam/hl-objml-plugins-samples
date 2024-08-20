@@ -153,7 +153,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	
 	private void init()
 	{
-		NET_YOLOX = Dnn.readNet( getModelFileName());
+		NET_YOLOX = Dnn.readNetFromONNX( getModelFileName());
 		
 		if(NET_YOLOX!=null)
 		{
@@ -252,20 +252,16 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
             for (int y = 0; y < hSize; y++) {
                 for (int x = 0; x < wSize; x++) {
 
-                    double value0 = matOutputDetections.get(detectionIdx, 0)[0];
-                    value0 = (value0 + x) * stride;
+                    double value0 = (matOutputDetections.get(detectionIdx, 0)[0] + x) * stride;
                     matOutputDetections.put(detectionIdx, 0, value0);
 
-                    double value1 = matOutputDetections.get(detectionIdx, 1)[0];
-                    value1 = (value1 + y) * stride;
+                    double value1 = (matOutputDetections.get(detectionIdx, 1)[0] + y) * stride;
                     matOutputDetections.put(detectionIdx, 1, value1);
 
-                    double value2 = matOutputDetections.get(detectionIdx, 2)[0];
-                    value2 = Math.exp(value2) * stride;
+                    double value2 = Math.exp(matOutputDetections.get(detectionIdx, 2)[0]) * stride;
                     matOutputDetections.put(detectionIdx, 2, value2);
 
-                    double value3 = matOutputDetections.get(detectionIdx, 3)[0];
-                    value3 = Math.exp(value3) * stride;
+                    double value3 = Math.exp(matOutputDetections.get(detectionIdx, 3)[0]) * stride;
                     matOutputDetections.put(detectionIdx, 3, value3);
                     
                     detectionIdx++;
@@ -279,16 +275,19 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	
 	private static int[] applyNMS(List<Rect2d> aBoxesList, List<Float> aConfidencesList, float CONFIDENCE_THRESHOLD, float NMS_THRESHOLD)
 	{
-        // Apply Non-Maximum Suppression
-        MatOfRect2d boxesMat = new MatOfRect2d();
-        boxesMat.fromList(aBoxesList);
-        
-        MatOfFloat confidencesMat = new MatOfFloat();
-        confidencesMat.fromList(aConfidencesList);
-        
         MatOfInt indices = new MatOfInt();
-        Dnn.NMSBoxes(boxesMat, confidencesMat, CONFIDENCE_THRESHOLD, NMS_THRESHOLD, indices);
-        
+
+        if(aBoxesList.size()>0)
+        {
+	        // Apply Non-Maximum Suppression
+	        MatOfRect2d boxesMat = new MatOfRect2d();
+	        boxesMat.fromList(aBoxesList);
+	        
+	        MatOfFloat confidencesMat = new MatOfFloat();
+	        confidencesMat.fromList(aConfidencesList);
+	        
+	        Dnn.NMSBoxes(boxesMat, confidencesMat, CONFIDENCE_THRESHOLD, NMS_THRESHOLD, indices);
+        }
         return indices.toArray();
 
 	}
