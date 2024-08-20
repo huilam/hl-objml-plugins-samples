@@ -23,6 +23,7 @@ import org.opencv.imgproc.Imgproc;
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 import hl.plugin.image.IMLDetectionPlugin;
+import hl.plugin.image.ObjDetection;
 
 public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 	
@@ -36,6 +37,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
     
     private static boolean SWAP_RB_CHANNEL			= false;
     private static boolean APPLY_IMG_PADDING 		= true;
+    private static boolean ANNOTATE_OUTPUT_IMG 		= true;
 
 
 	@Override
@@ -117,27 +119,42 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	        
 	        if(outputBoxes.size()>0)
 	        {
-				Mat matOutputImg = matInputImg.clone();
-				OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
+				Mat matOutputImg = null;
+				
+				if(ANNOTATE_OUTPUT_IMG)
+		        {
+					matOutputImg = matInputImg.clone();
+					OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
+		        }
 				
 		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
 //System.out.println("@@@   applyNMS="+indices.length);
 		        
+		        ObjDetection objs = new ObjDetection();
+		        
 		        // Draw bounding boxes
 		        for (int idx : indices) {
 		        	
-		            Rect2d box = outputBoxes.get(idx);
-		            int classId = outputClassIds.get(idx);
+		            Rect2d box 			= outputBoxes.get(idx);
+		            int classId 		= outputClassIds.get(idx);
+		            String classLabel 	= OBJ_CLASSESS.get(classId);
+		            Float confScore 	= outputConfidences.get(idx);
 		            
-		            String label = OBJ_CLASSESS.get(classId) + ": " + String.format("%.2f", outputConfidences.get(idx));
+		            objs.addDetectedObj(classId, classLabel, confScore, box);
 		            
-//System.out.println("    "+idx+"="+label+" "+box.tl()+" "+box.br());		            
-		            Imgproc.rectangle(matOutputImg, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
-		            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+		            if(ANNOTATE_OUTPUT_IMG)
+		            {
+		            	String label = classLabel + ": " + String.format("%.2f", confScore);
+			            Imgproc.rectangle(matOutputImg, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
+			            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+		            }
 		        }
-				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+		        
+		        mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
 				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
+		        //
+				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 				//
 				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
 				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, fNMSThreshold);

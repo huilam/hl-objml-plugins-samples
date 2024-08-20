@@ -2,12 +2,14 @@ import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
+import org.json.JSONObject;
 import org.opencv.core.Mat;
 
 import hl.common.FileUtil;
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 import hl.plugin.image.IMLDetectionPlugin;
+import hl.plugin.image.ObjDetection;
 
 public class BaseTester {
 	
@@ -99,13 +101,23 @@ public class BaseTester {
 				{
 					long lInferenceMs =  lInferenceEnd-lInferenceStart;
 					
-					Integer outputTotalDetections = (Integer)mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT);
+					Integer outputTotalDetections = (Integer) mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT);
+					
 					
 					System.out.println();
 					System.out.println("     - Inference Model File : "+new File(aDetector.getPluginMLModelFileName()).getName());
 					System.out.println("     - Inference Input Size : "+matImg.size().toString());
 					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
-					System.out.println("     - Result : "+(outputTotalDetections==null?"(missing data)":outputTotalDetections));
+					
+					JSONObject jsonDetection = (JSONObject) mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_DETECTION_JSON);
+					if(jsonDetection!=null)
+					{
+						ObjDetection objs = new ObjDetection();
+						objs.addAll(jsonDetection);
+						//
+						System.out.println("     - ObjClass Names : "+String.join(",", objs.getObjClassNames()));
+						System.out.println("     - Total Detection : "+(outputTotalDetections==null?"(missing data)":outputTotalDetections));
+					}
 					
 					Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT);
 					
