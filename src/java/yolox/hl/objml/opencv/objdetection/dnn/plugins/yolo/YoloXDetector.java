@@ -36,7 +36,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
     private static Size DEF_INPUT_SIZE 				= new Size(640, 640);
     
     private static boolean SWAP_RB_CHANNEL			= false;
-    private static boolean APPLY_IMG_PADDING 		= true;
+    private static boolean APPLY_IMG_PADDING 		= false;
     private static boolean ANNOTATE_OUTPUT_IMG 		= true;
 
 
