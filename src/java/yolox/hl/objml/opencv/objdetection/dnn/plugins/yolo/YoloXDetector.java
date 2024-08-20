@@ -136,8 +136,8 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 		            Imgproc.rectangle(matOutputImg, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
 		            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
 		        }
-				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutputImg);
-				mapResult.put(IMLDetectionPlugin._KEY_TOTAL_DETECTION, indices.length);
+				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
 				//
 				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
 				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, fNMSThreshold);

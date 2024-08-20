@@ -98,7 +98,7 @@ System.out.println("## applyNMS indices="+indices);
 		            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
 		        }
 				
-				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutputImg);
+				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 				
 	        }
 		} catch (Exception e) {

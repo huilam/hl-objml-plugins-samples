@@ -97,10 +97,10 @@ public class FaceDetector extends MLDetectionBasePlugin implements IMLDetectionP
 	        }
 	        
 	        if(faces!=null)
-	        	mapResult.put(IMLDetectionPlugin._KEY_TOTAL_DETECTION, faces.height());
+	        	mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT, faces.height());
 	        
 	        if(srcImg!=null)
-	        	mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, srcImg);
+	        	mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, srcImg);
 	        
 	    	mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, scoreThreshold);
 			mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, nmsThreshold);

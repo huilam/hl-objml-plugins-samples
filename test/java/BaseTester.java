@@ -99,7 +99,7 @@ public class BaseTester {
 				{
 					long lInferenceMs =  lInferenceEnd-lInferenceStart;
 					
-					Integer outputTotalDetections = (Integer)mapResult.get(IMLDetectionPlugin._KEY_TOTAL_DETECTION);
+					Integer outputTotalDetections = (Integer)mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT);
 					
 					System.out.println();
 					System.out.println("     - Inference Model File : "+new File(aDetector.getPluginMLModelFileName()).getName());
@@ -107,7 +107,7 @@ public class BaseTester {
 					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
 					System.out.println("     - Result : "+(outputTotalDetections==null?"(missing data)":outputTotalDetections));
 					
-					Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_MAT_OUTPUT);
+					Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT);
 					
 					if(matOutput!=null && !matOutput.empty())
 					{

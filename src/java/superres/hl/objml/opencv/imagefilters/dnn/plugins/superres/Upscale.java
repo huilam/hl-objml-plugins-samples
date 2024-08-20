@@ -30,8 +30,8 @@ public class Upscale extends MLDetectionBasePlugin implements IMLDetectionPlugin
 			Mat matOutput = upScaling(aMatInput);
 			if(matOutput!=null)
 			{
-				mapResult.put(IMLDetectionPlugin._KEY_MAT_OUTPUT, matOutput);
-				mapResult.put(IMLDetectionPlugin._KEY_TOTAL_DETECTION, 1);
+				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
+				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT, 1);
 				//
 				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, -1);
 				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, -1);
