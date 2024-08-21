@@ -45,12 +45,13 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 
 	/**
 	 *  ONNX Model = https://github.com/Megvii-BaseDetection/YOLOX/tree/main/demo/ONNXRuntime
+	 *  
 	 *  Processing Reference
 	 *  - https://github.com/Megvii-BaseDetection/YOLOX/blob/main/demo/ONNXRuntime/onnx_inference.py
 	 *  - https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/data/data_augment.py
 	 *  - https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/utils/demo_utils.py
 	 */
-	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
+	public Map<String, Object> detect(final Mat aMatInput, JSONObject aCustomThresholdJson) {
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		try {
 			if(NET_YOLOX==null)
@@ -73,15 +74,20 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 			matResult = postProcess(matResult, sizeInput);
 
 			 // Decode detection
+	        double scaleW = aMatInput.width() / sizeInput.width;
+	        double scaleH = aMatInput.height() / sizeInput.height;
 	        float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
 	        float fNMSThreshold 		= DEF_NMS_THRESHOLD;
+	        
 	        List<Rect2d> outputBoxes 		= new ArrayList<>();
 	        List<Float> outputConfidences 	= new ArrayList<>();
 	        List<Integer> outputClassIds 	= new ArrayList<>();
-	        decodePredictions(matResult, sizeInput, 
+	        //
+	        decodePredictions(matResult, 
+	        		scaleW, scaleH,  
 	        		outputBoxes, outputConfidences, outputClassIds, 
 	        		fConfidenceThreshold);
-
+	        //
 	        if(outputBoxes.size()>0)
 	        {
 		        // Apply NMS
@@ -102,7 +108,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 		        // Draw bounding boxes
 				if(ANNOTATE_OUTPUT_IMG)
 		        {
-					Mat matOutputImg = matInputImg.clone();
+					Mat matOutputImg = aMatInput.clone();
 					OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
 
 					for(String sObjClassName : objs.getObjClassNames())
@@ -323,9 +329,11 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	}
 
 	private static void decodePredictions(
-	        Mat matResult, Size imageSize, 
+	        final Mat matResult, 
+	        final double aScaleW,
+	        final double aScaleH,
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
-	        float aConfidenceThreshold) {
+	        final float aConfidenceThreshold) {
 	    
         for (int i = 0; i < matResult.rows(); i++) 
         {
