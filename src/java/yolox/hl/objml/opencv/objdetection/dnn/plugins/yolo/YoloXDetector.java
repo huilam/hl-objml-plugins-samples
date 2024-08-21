@@ -27,8 +27,6 @@ import hl.plugin.image.ObjDetection;
 
 public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 	
-	private static final int[] STRIDES 	=  {8, 16, 32};
-	
 	private static Net NET_YOLOX 					= null;
 	private static List<String> OBJ_CLASSESS 		= new ArrayList<String>();
     private static float DEF_CONFIDENCE_THRESHOLD 	= 0.9f;
@@ -59,81 +57,38 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	        {
 				init();
 	        }
+			
+			// Prepare input
 			Size sizeInput = DEF_INPUT_SIZE;
-			
-			Mat matInputImg = aMatInput.clone();
-					
-			if(APPLY_IMG_PADDING)
-			{
-				Mat matPaddedImg = null;
-				Mat matROI = null;
-				try {
-					
-					int iMaxPixels = Math.max(aMatInput.width(), aMatInput.height());
-					matPaddedImg = new Mat(new Size(iMaxPixels,iMaxPixels), aMatInput.type(), Scalar.all(0));
-					matROI = matPaddedImg.submat(0,aMatInput.rows(),0,aMatInput.cols());
-					aMatInput.copyTo(matROI);
-					
-					matInputImg = matPaddedImg.clone();
-				}
-				finally
-				{
-					if(matPaddedImg!=null)
-						matPaddedImg.release();
-					if(matROI!=null)
-						matROI.release();
-				}
-			}
-			
-//System.out.println("## Loaded aMatInput="+aMatInput);
-			// Convert from BGR to RGB
-			if(SWAP_RB_CHANNEL)
-			{
-				Imgproc.cvtColor(matInputImg, matInputImg, Imgproc.COLOR_BGR2RGB);
-			}
-			
-			Mat matDnnImg = Dnn.blobFromImage(matInputImg, 1, sizeInput, Scalar.all(0), true, false);
+			Mat matInputImg = aMatInput.clone();					
+			Mat matDnnImg = preProcess(matInputImg, sizeInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
 			NET_YOLOX.setInput(matDnnImg);
-//System.out.println("## Dnn Input Image="+matDnnImg);
 
 	        // Run inference
 	        List<Mat> outputs = new ArrayList<>();
 	        NET_YOLOX.forward(outputs, NET_YOLOX.getUnconnectedOutLayersNames());
-	        
-	        Mat matResult = outputs.get(0);
-//System.out.println("@@@ Inference Output="+matResult);
-			
-			matResult = postProcess(matResult, sizeInput);
-//System.out.println("@@@ postProcess Output="+matResult);
 
-	        float fConfidenceThreshold = DEF_CONFIDENCE_THRESHOLD;
-	        float fNMSThreshold = DEF_NMS_THRESHOLD;
-	        
+	        // Process output
+	        Mat matResult = outputs.get(0);
+			matResult = postProcess(matResult, sizeInput);
+
+			 // Decode detection
+	        float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
+	        float fNMSThreshold 		= DEF_NMS_THRESHOLD;
 	        List<Rect2d> outputBoxes 		= new ArrayList<>();
 	        List<Float> outputConfidences 	= new ArrayList<>();
 	        List<Integer> outputClassIds 	= new ArrayList<>();
-	        
-	        decodePredictions(matResult, sizeInput, outputBoxes, outputConfidences, outputClassIds, fConfidenceThreshold);
+	        decodePredictions(matResult, sizeInput, 
+	        		outputBoxes, outputConfidences, outputClassIds, 
+	        		fConfidenceThreshold);
 
-//System.out.println("@@@   Detection="+outputBoxes.size());
-	        
 	        if(outputBoxes.size()>0)
 	        {
-				Mat matOutputImg = null;
-				
-				if(ANNOTATE_OUTPUT_IMG)
-		        {
-					matOutputImg = matInputImg.clone();
-					OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
-		        }
-				
+		        // Apply NMS
 		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
-//System.out.println("@@@   applyNMS="+indices.length);
-		        
+		        // Calculate bounding boxes
 		        ObjDetection objs = new ObjDetection();
-		        
-		        // Draw bounding boxes
 		        for (int idx : indices) {
 		        	
 		            Rect2d box 			= outputBoxes.get(idx);
@@ -142,19 +97,41 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 		            Float confScore 	= outputConfidences.get(idx);
 		            
 		            objs.addDetectedObj(classId, classLabel, confScore, box);
-		            
-		            if(ANNOTATE_OUTPUT_IMG)
-		            {
-		            	String label = classLabel + ": " + String.format("%.2f", confScore);
-			            Imgproc.rectangle(matOutputImg, new Point(box.x, box.y), new Point(box.x + box.width, box.y + box.height), new Scalar(0, 255, 0), 2);
-			            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-		            }
+		        }
+		        
+		        // Draw bounding boxes
+				if(ANNOTATE_OUTPUT_IMG)
+		        {
+					Mat matOutputImg = matInputImg.clone();
+					OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
+
+					for(String sObjClassName : objs.getObjClassNames())
+					{
+						JSONObject[] jsonDetectedObjs = objs.getDetectedObjByObjClassName(sObjClassName);
+						for(JSONObject json : jsonDetectedObjs)
+						{
+							//long objClassId = ObjDetection.getObjClassId(json);
+							String objClassName = ObjDetection.getObjClassName(json);
+							double objConfScore = ObjDetection.getConfidenceScore(json);
+							Rect2d objBox = ObjDetection.getBoundingBox(json);
+									
+			            	Point ptXY1 	= new Point(objBox.x, objBox.y);
+			            	Point ptXY2 	= new Point(objBox.x + objBox.width, objBox.y + objBox.height);
+				            Imgproc.rectangle(matOutputImg, ptXY1, ptXY2, new Scalar(0, 255, 0), 2);
+
+				            String label 	= objClassName + ": " + String.format("%.2f", objConfScore);
+				            Imgproc.putText(matOutputImg, label, new Point(ptXY1.x, ptXY1.y - 10), 
+				            		Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
+						}
+					
+					}
+			        //
+					mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 		        }
 		        
 		        mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
 				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
-		        //
-				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+
 				//
 				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
 				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
@@ -240,13 +217,49 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 		}
 	}
 	
+	private static Mat preProcess(Mat aMatInput, Size sizeInput, 
+			boolean isApplyImgPadding, boolean isSwapRBChannel)
+	{
+		if(isApplyImgPadding)
+		{
+			Mat matPaddedImg = null;
+			Mat matROI = null;
+			try {
+				
+				int iMaxPixels = Math.max(aMatInput.width(), aMatInput.height());
+				matPaddedImg = new Mat(new Size(iMaxPixels,iMaxPixels), aMatInput.type(), Scalar.all(0));
+				matROI = matPaddedImg.submat(0,aMatInput.rows(),0,aMatInput.cols());
+				aMatInput.copyTo(matROI);
+				
+				aMatInput = matPaddedImg.clone();
+			}
+			finally
+			{
+				if(matPaddedImg!=null)
+					matPaddedImg.release();
+				if(matROI!=null)
+					matROI.release();
+			}
+		}
+		
+		// Convert from BGR to RGB
+		if(isSwapRBChannel)
+		{
+			Imgproc.cvtColor(aMatInput, aMatInput, Imgproc.COLOR_BGR2RGB);
+		}
+		
+		
+		return Dnn.blobFromImage(aMatInput, 1, sizeInput, Scalar.all(0), true, false);		
+	}
+	
 	private static Mat postProcess(Mat matOutputDetections, Size sizeInput)
 	{
 		int detectionCount = 0;
 		matOutputDetections = matOutputDetections.reshape(1, new int[] {8400, 85});
 
-		int[] hSizes = new int[STRIDES.length];
-		int[] wSizes = new int[STRIDES.length];
+		int[] STRIDES 	=  {8, 16, 32};
+		int[] hSizes 	= new int[STRIDES.length];
+		int[] wSizes 	= new int[STRIDES.length];
 		
 		for (int i=0; i<STRIDES.length; i++) {
 			hSizes[i] = Math.floorDiv((int)sizeInput.height, STRIDES[i]);
@@ -312,7 +325,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	private static void decodePredictions(
 	        Mat matResult, Size imageSize, 
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
-	        float CONFIDENCE_THRESHOLD) {
+	        float aConfidenceThreshold) {
 	    
         for (int i = 0; i < matResult.rows(); i++) 
         {
@@ -321,7 +334,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
             Core.MinMaxLocResult mm = Core.minMaxLoc(scores);
             float confidence = (float) mm.maxVal;
             
-            if (confidence >= CONFIDENCE_THRESHOLD) {
+            if (confidence >= aConfidenceThreshold) {
                 int classId = (int) mm.maxLoc.x;
                 float[] data = new float[4];
                 row.colRange(0, 4).get(0, 0, data);
