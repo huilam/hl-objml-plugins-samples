@@ -21,7 +21,6 @@ import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
-import hl.opencv.util.OpenCvUtil;
 import hl.plugin.image.IMLDetectionPlugin;
 import hl.plugin.image.ObjDetection;
 
@@ -74,8 +73,8 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 			matResult = postProcess(matResult, sizeInput);
 
 			 // Decode detection
-	        double scaleW = aMatInput.width() / sizeInput.width;
-	        double scaleH = aMatInput.height() / sizeInput.height;
+	        double scaleOrgW = aMatInput.width() / sizeInput.width;
+	        double scaleOrgH = aMatInput.height() / sizeInput.height;
 	        float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
 	        float fNMSThreshold 		= DEF_NMS_THRESHOLD;
 	        
@@ -84,7 +83,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 	        List<Integer> outputClassIds 	= new ArrayList<>();
 	        //
 	        decodePredictions(matResult, 
-	        		scaleW, scaleH,  
+	        		scaleOrgW, scaleOrgH,  
 	        		outputBoxes, outputConfidences, outputClassIds, 
 	        		fConfidenceThreshold);
 	        //
@@ -109,7 +108,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 				if(ANNOTATE_OUTPUT_IMG)
 		        {
 					Mat matOutputImg = aMatInput.clone();
-					OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
+					//OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
 
 					for(String sObjClassName : objs.getObjClassNames())
 					{
@@ -347,10 +346,10 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
                 float[] data = new float[4];
                 row.colRange(0, 4).get(0, 0, data);
 
-                double centerX = data[0];
-                double centerY = data[1];
-                double width   = data[2];
-                double height  = data[3];
+                double centerX = data[0] * aScaleW;
+                double centerY = data[1] * aScaleH;
+                double width   = data[2] * aScaleW;
+                double height  = data[3] * aScaleH;
                 
                 double left = centerX - (width / 2);
                 double top 	= centerY - (height / 2);
