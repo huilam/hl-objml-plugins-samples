@@ -12,7 +12,6 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
 import org.opencv.core.MatOfRect2d;
-import org.opencv.core.Point;
 import org.opencv.core.Rect2d;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -23,6 +22,7 @@ import org.opencv.imgproc.Imgproc;
 import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
 import hl.plugin.image.IMLDetectionPlugin;
 import hl.plugin.image.ObjDetection;
+import hl.plugin.image.ObjDetectionUtil;
 
 public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
 	
@@ -107,30 +107,7 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 		        // Draw bounding boxes
 				if(ANNOTATE_OUTPUT_IMG)
 		        {
-					Mat matOutputImg = aMatInput.clone();
-					//OpenCvUtil.resize(matOutputImg, (int)sizeInput.width, (int)sizeInput.height, false);
-
-					for(String sObjClassName : objs.getObjClassNames())
-					{
-						JSONObject[] jsonDetectedObjs = objs.getDetectedObjByObjClassName(sObjClassName);
-						for(JSONObject json : jsonDetectedObjs)
-						{
-							//long objClassId = ObjDetection.getObjClassId(json);
-							String objClassName = ObjDetection.getObjClassName(json);
-							double objConfScore = ObjDetection.getConfidenceScore(json);
-							Rect2d objBox = ObjDetection.getBoundingBox(json);
-									
-			            	Point ptXY1 	= new Point(objBox.x, objBox.y);
-			            	Point ptXY2 	= new Point(objBox.x + objBox.width, objBox.y + objBox.height);
-				            Imgproc.rectangle(matOutputImg, ptXY1, ptXY2, new Scalar(0, 255, 0), 2);
-
-				            String label 	= objClassName + ": " + String.format("%.2f", objConfScore);
-				            Imgproc.putText(matOutputImg, label, new Point(ptXY1.x, ptXY1.y - 10), 
-				            		Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
-						}
-					
-					}
-			        //
+					Mat matOutputImg = ObjDetectionUtil.annotateImage(aMatInput, objs);
 					mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 		        }
 		        
