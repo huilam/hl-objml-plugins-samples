@@ -118,6 +118,10 @@ public class BaseTester {
 						System.out.println("     - ObjClass Names : "+String.join(",", objs.getObjClassNames()));
 						System.out.println("     - Total Detection : "+(outputTotalDetections==null?"(missing data)":outputTotalDetections));
 					}
+					else
+					{
+						System.out.println("     - Detection JSON : "+jsonDetection);
+					}
 					
 					Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT);
 					

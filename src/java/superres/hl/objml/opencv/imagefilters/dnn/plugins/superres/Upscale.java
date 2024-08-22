@@ -13,7 +13,7 @@ import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
 import hl.plugin.image.IMLDetectionPlugin;
 
 
-public class Upscale extends MLDetectionBasePlugin implements IMLDetectionPlugin {
+public class Upscale extends MLDetectionBasePlugin {
 	
 	private DnnSuperResImpl superres = null;
 	private Pattern pattModelNameNScale = Pattern.compile("([A-Z][A-Z,a-z]+)_x([2,3,4])\\.pb");

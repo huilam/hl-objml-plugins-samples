@@ -24,7 +24,7 @@ import hl.plugin.image.IMLDetectionPlugin;
 import hl.plugin.image.ObjDetection;
 import hl.plugin.image.ObjDetectionUtil;
 
-public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
+public class YoloXDetector extends MLDetectionBasePlugin {
 	
 	private static Net NET_YOLOX 					= null;
 	private static List<String> OBJ_CLASSESS 		= new ArrayList<String>();
@@ -304,7 +304,18 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
 
 	}
 
-	private static void decodePredictions(
+	private boolean isObjOfInterest(int aObjClassId)
+	{
+		String sObjClassName = OBJ_CLASSESS.get(aObjClassId);
+		return isObjOfInterest(sObjClassName);
+	}
+	
+	private boolean isObjOfInterest(String aObjClassName)
+	{
+		return super.isObjClassOfInterest(aObjClassName);
+	}
+
+	private void decodePredictions(
 	        final Mat matResult, 
 	        final double aScaleW,
 	        final double aScaleH,
@@ -320,25 +331,29 @@ public class YoloXDetector extends MLDetectionBasePlugin implements IMLDetection
             
             if (confidence >= aConfidenceThreshold) {
                 int classId = (int) mm.maxLoc.x;
-                float[] data = new float[4];
-                row.colRange(0, 4).get(0, 0, data);
 
-                double centerX = data[0] * aScaleW;
-                double centerY = data[1] * aScaleH;
-                double width   = data[2] * aScaleW;
-                double height  = data[3] * aScaleH;
-                
-                double left = centerX - (width / 2);
-                double top 	= centerY - (height / 2);
-                
-                long lLeft  	= (long) Math.floor((left<0? 0: left));
-                long lTop  		= (long) Math.floor((top<0? 0: top));
-                long lWidth 	= (long) Math.floor(width);
-        		long lHeight 	= (long) Math.floor(height);
+        		if(isObjOfInterest(classId))
+        		{
+                    float[] data = new float[4];
+                    row.colRange(0, 4).get(0, 0, data);
 
-                classIds.add(classId);
-                confidences.add(confidence);
-                boxes.add(new Rect2d(lLeft, lTop, lWidth, lHeight));
+                    double centerX = data[0] * aScaleW;
+                    double centerY = data[1] * aScaleH;
+                    double width   = data[2] * aScaleW;
+                    double height  = data[3] * aScaleH;
+                    
+                    double left = centerX - (width / 2);
+                    double top 	= centerY - (height / 2);
+                    
+                    long lLeft  	= (long) Math.floor((left<0? 0: left));
+                    long lTop  		= (long) Math.floor((top<0? 0: top));
+                    long lWidth 	= (long) Math.floor(width);
+            		long lHeight 	= (long) Math.floor(height);
+            		
+	                classIds.add(classId);
+	                confidences.add(confidence);
+	                boxes.add(new Rect2d(lLeft, lTop, lWidth, lHeight));
+        		}
             }
         }
 	}

@@ -19,7 +19,7 @@ import hl.opencv.util.OpenCvUtil;
 import hl.plugin.image.IMLDetectionPlugin;
 import hl.plugin.image.ObjDetection;
 
-public class YunetFaceDetector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
+public class YunetFaceDetector extends MLDetectionBasePlugin {
 
 	private FaceDetectorYN faceDetectorYN = null;
 	
