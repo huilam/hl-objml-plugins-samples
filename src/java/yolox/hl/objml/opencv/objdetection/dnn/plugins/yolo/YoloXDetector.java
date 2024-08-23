@@ -332,6 +332,7 @@ public class YoloXDetector extends MLDetectionBasePlugin {
             if (confidence >= aConfidenceThreshold) {
                 int classId = (int) mm.maxLoc.x;
 
+                //check if obj of interest
         		if(isObjOfInterest(classId))
         		{
                     float[] data = new float[4];

@@ -6,10 +6,8 @@ public class TestYoloXDetector extends BaseTester {
 	public static void main(String[] args)
 	{
 		MLDetectionBasePlugin detector = new YoloXDetector();
-		detector.addObjClassOfInterest("person");
-		detector.addObjClassOfInterest("car");
-		detector.addObjClassOfInterest("truck");
-		detector.addObjClassOfInterest("bus");
+		detector.addObjClassOfInterest(new String[]{"person"});
+		detector.addObjClassOfInterest(new String[]{"truck", "car", "bus"});
 		testDetector(detector);
 	}
 }
