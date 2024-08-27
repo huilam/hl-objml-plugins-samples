@@ -14,12 +14,11 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.FaceDetectorYN;
 
-import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
+import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
-import hl.plugin.image.IMLDetectionPlugin;
 import hl.plugin.image.ObjDetection;
 
-public class YunetFaceDetector extends MLDetectionBasePlugin {
+public class YunetFaceDetector extends ObjDetectionBasePlugin {
 
 	private FaceDetectorYN faceDetectorYN = null;
 	
@@ -78,9 +77,9 @@ public class YunetFaceDetector extends MLDetectionBasePlugin {
 	        faces = new Mat();
 	        faceDetectorYN.detect(srcImg,faces);
 	        
+        	ObjDetection objs = new ObjDetection();
 	        if(faces!=null)
 	        {
-	        	ObjDetection objs = new ObjDetection();
 	        	 
 		        for (int i = 0; i < faces.height(); i++)
 		        {
@@ -110,17 +109,17 @@ public class YunetFaceDetector extends MLDetectionBasePlugin {
 		            Imgproc.circle(srcImg, rightMouth, 2, new Scalar(0, 255, 255), 2);
 		        }
 	        
-	        	mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, objs.toJson());
-	        	mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT, faces.height());
+	        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, faces.height());
 	        }
 	        
 	        if(srcImg!=null)
 	        {
-	        	mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, srcImg.clone());
+	        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, srcImg.clone());
 	        }
 	        
-	    	mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, scoreThreshold);
-			mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, nmsThreshold);
+	    	mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, scoreThreshold);
+			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, nmsThreshold);
+        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
 	        
 		}finally
 		{

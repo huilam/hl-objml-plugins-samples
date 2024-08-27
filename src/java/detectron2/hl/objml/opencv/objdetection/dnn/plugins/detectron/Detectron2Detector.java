@@ -19,10 +19,9 @@ import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
-import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
-import hl.plugin.image.IMLDetectionPlugin;
+import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
 
-public class Detectron2Detector extends MLDetectionBasePlugin implements IMLDetectionPlugin {
+public class Detectron2Detector extends ObjDetectionBasePlugin {
 	
 	private static Net NET_Detectron2 = null;
 	private static List<String> OBJ_CLASSESS = new ArrayList<String>();
@@ -98,7 +97,7 @@ System.out.println("## applyNMS indices="+indices);
 		            Imgproc.putText(matOutputImg, label, new Point(box.x, box.y - 10), Imgproc.FONT_HERSHEY_SIMPLEX, 0.5, new Scalar(0, 255, 0), 2);
 		        }
 				
-				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 				
 	        }
 		} catch (Exception e) {

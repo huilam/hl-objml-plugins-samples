@@ -19,12 +19,11 @@ import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
-import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
-import hl.plugin.image.IMLDetectionPlugin;
+import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
 import hl.plugin.image.ObjDetection;
 import hl.plugin.image.ObjDetectionUtil;
 
-public class YoloXDetector extends MLDetectionBasePlugin {
+public class YoloXDetector extends ObjDetectionBasePlugin {
 	
 	private static Net NET_YOLOX 					= null;
 	private static List<String> OBJ_CLASSESS 		= new ArrayList<String>();
@@ -108,15 +107,15 @@ public class YoloXDetector extends MLDetectionBasePlugin {
 				if(ANNOTATE_OUTPUT_IMG)
 		        {
 					Mat matOutputImg = ObjDetectionUtil.annotateImage(aMatInput, objs);
-					mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+					mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 		        }
 		        
-		        mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
-				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
+		        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
+				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
 
 				//
-				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
-				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
+				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
+				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
 				//
 	        }
 	        

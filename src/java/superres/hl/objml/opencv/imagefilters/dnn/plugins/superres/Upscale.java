@@ -9,11 +9,10 @@ import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.dnn_superres.DnnSuperResImpl;
 
-import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
-import hl.plugin.image.IMLDetectionPlugin;
+import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
 
 
-public class Upscale extends MLDetectionBasePlugin {
+public class Upscale extends ObjDetectionBasePlugin {
 	
 	private DnnSuperResImpl superres = null;
 	private Pattern pattModelNameNScale = Pattern.compile("([A-Z][A-Z,a-z]+)_x([2,3,4])\\.pb");
@@ -30,11 +29,11 @@ public class Upscale extends MLDetectionBasePlugin {
 			Mat matOutput = upScaling(aMatInput);
 			if(matOutput!=null)
 			{
-				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
-				mapResult.put(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT, 1);
+				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
+				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, 1);
 				//
-				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_DETECTION, -1);
-				mapResult.put(IMLDetectionPlugin._KEY_THRESHOLD_NMS, -1);
+				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, -1);
+				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, -1);
 			}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block

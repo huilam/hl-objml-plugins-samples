@@ -6,9 +6,8 @@ import org.json.JSONObject;
 import org.opencv.core.Mat;
 
 import hl.common.FileUtil;
-import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
+import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
-import hl.plugin.image.IMLDetectionPlugin;
 import hl.plugin.image.ObjDetection;
 
 public class BaseTester {
@@ -49,7 +48,7 @@ public class BaseTester {
 		return null;
 	}
 	
-	public static void testDetector(IMLDetectionPlugin aDetector)
+	public static void testDetector(ObjDetectionBasePlugin aDetector)
 	{
 		OpenCvUtil.initOpenCV();
 		
@@ -91,7 +90,7 @@ public class BaseTester {
 				System.out.println();
 				System.out.print(" "+(i++)+". Perform test on "+fImg.getName()+" ... ");
 				
-				Mat matImg = MLDetectionBasePlugin.getCvMatFromFile(fImg);
+				Mat matImg = ObjDetectionBasePlugin.getCvMatFromFile(fImg);
 				
 				long lInferenceStart = System.currentTimeMillis();
 				Map<String, Object> mapResult = aDetector.detect(matImg, null);
@@ -101,7 +100,7 @@ public class BaseTester {
 				{
 					long lInferenceMs =  lInferenceEnd-lInferenceStart;
 					
-					Integer outputTotalDetections = (Integer) mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_TOTAL_COUNT);
+					Integer outputTotalDetections = (Integer) mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT);
 					
 					
 					System.out.println();
@@ -109,7 +108,7 @@ public class BaseTester {
 					System.out.println("     - Inference Input Size : "+matImg.size().toString());
 					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
 					
-					JSONObject jsonDetection = (JSONObject) mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_DETECTION_JSON);
+					JSONObject jsonDetection = (JSONObject) mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON);
 					if(jsonDetection!=null)
 					{
 						ObjDetection objs = new ObjDetection();
@@ -123,7 +122,7 @@ public class BaseTester {
 						System.out.println("     - Detection JSON : "+jsonDetection);
 					}
 					
-					Mat matOutput = (Mat) mapResult.get(IMLDetectionPlugin._KEY_OUTPUT_ANNOTATED_MAT);
+					Mat matOutput = (Mat) mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT);
 					
 					if(matOutput!=null && !matOutput.empty() && outputTotalDetections>0)
 					{
