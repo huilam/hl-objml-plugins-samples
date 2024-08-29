@@ -20,8 +20,8 @@ import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
-import hl.plugin.image.ObjDetection;
-import hl.plugin.image.ObjDetectionUtil;
+import hl.plugin.image.DetectedObj;
+import hl.plugin.image.DetectedObjUtil;
 
 public class YoloXDetector extends ObjDetectionBasePlugin {
 	
@@ -92,7 +92,7 @@ public class YoloXDetector extends ObjDetectionBasePlugin {
 		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
 		        // Calculate bounding boxes
-		        ObjDetection objs = new ObjDetection();
+		        DetectedObj objs = new DetectedObj();
 		        for (int idx : indices) {
 		        	
 		            Rect2d box 			= outputBoxes.get(idx);
@@ -106,7 +106,7 @@ public class YoloXDetector extends ObjDetectionBasePlugin {
 		        // Draw bounding boxes
 				if(ANNOTATE_OUTPUT_IMG)
 		        {
-					Mat matOutputImg = ObjDetectionUtil.annotateImage(aMatInput, objs);
+					Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, objs);
 					mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 		        }
 		        

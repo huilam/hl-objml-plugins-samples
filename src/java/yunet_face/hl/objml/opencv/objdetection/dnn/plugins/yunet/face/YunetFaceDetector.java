@@ -16,7 +16,7 @@ import org.opencv.objdetect.FaceDetectorYN;
 
 import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
-import hl.plugin.image.ObjDetection;
+import hl.plugin.image.DetectedObj;
 
 public class YunetFaceDetector extends ObjDetectionBasePlugin {
 
@@ -77,7 +77,7 @@ public class YunetFaceDetector extends ObjDetectionBasePlugin {
 	        faces = new Mat();
 	        faceDetectorYN.detect(srcImg,faces);
 	        
-        	ObjDetection objs = new ObjDetection();
+        	DetectedObj objs = new DetectedObj();
 	        if(faces!=null)
 	        {
 	        	 
