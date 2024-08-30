@@ -6,9 +6,9 @@ import org.json.JSONObject;
 import org.opencv.core.Mat;
 
 import hl.common.FileUtil;
-import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
+import hl.objml2.common.DetectedObj;
+import hl.objml2.plugin.ObjDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
-import hl.plugin.image.DetectedObj;
 
 public class BaseTester {
 	

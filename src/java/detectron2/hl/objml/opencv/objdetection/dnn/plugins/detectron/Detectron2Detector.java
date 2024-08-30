@@ -19,7 +19,7 @@ import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
-import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
+import hl.objml2.plugin.ObjDetectionBasePlugin;
 
 public class Detectron2Detector extends ObjDetectionBasePlugin {
 	

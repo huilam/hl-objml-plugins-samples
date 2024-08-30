@@ -1,5 +1,5 @@
-import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
 import hl.objml.opencv.objdetection.dnn.plugins.yolo.YoloXDetector;
+import hl.objml2.plugin.ObjDetectionBasePlugin;
 
 public class TestYoloXDetector extends BaseTester {
 

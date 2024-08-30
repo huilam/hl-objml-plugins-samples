@@ -14,9 +14,9 @@ import org.opencv.core.Size;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.FaceDetectorYN;
 
-import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
+import hl.objml2.common.DetectedObj;
+import hl.objml2.plugin.ObjDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
-import hl.plugin.image.DetectedObj;
 
 public class YunetFaceDetector extends ObjDetectionBasePlugin {
 

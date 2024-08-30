@@ -4,10 +4,10 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.opencv.core.Mat;
 
-import hl.objml.opencv.objdetection.MLDetectionBasePlugin;
-import hl.plugin.image.IMLDetectionPlugin;
+import hl.objml2.plugin.IObjDetectionPlugin;
+import hl.objml2.plugin.ObjDetectionBasePlugin;
 
-public class EmptyDetectorPluginSample extends MLDetectionBasePlugin implements IMLDetectionPlugin {
+public class EmptyDetectorPluginSample extends ObjDetectionBasePlugin implements IObjDetectionPlugin {
 
 	@Override
 	public boolean isPluginOK() {

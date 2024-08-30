@@ -19,9 +19,10 @@ import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
-import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
-import hl.plugin.image.DetectedObj;
-import hl.plugin.image.DetectedObjUtil;
+import hl.objml2.common.DetectedObj;
+import hl.objml2.common.DetectedObjUtil;
+import hl.objml2.plugin.ObjDetectionBasePlugin;
+
 
 public class YoloXDetector extends ObjDetectionBasePlugin {
 	

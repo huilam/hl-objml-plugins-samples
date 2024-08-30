@@ -9,7 +9,7 @@ import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.dnn_superres.DnnSuperResImpl;
 
-import hl.objml.opencv.objdetection.ObjDetectionBasePlugin;
+import hl.objml2.plugin.ObjDetectionBasePlugin;
 
 
 public class Upscale extends ObjDetectionBasePlugin {
