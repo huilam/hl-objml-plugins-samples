@@ -12,9 +12,18 @@ import hl.opencv.util.OpenCvUtil;
 
 public class BaseTester {
 	
-	protected static File[] getTestImageFiles()
+	private String DEF_FOLDER_IMAGE = "./test/images/";
+	
+	private String FOLDER_IMAGE = DEF_FOLDER_IMAGE;
+	
+	protected void setTestImageFolder(String aImageFolder)
 	{
-		File folderImages = new File("./test/images/");
+		this.FOLDER_IMAGE = aImageFolder;
+	}
+	
+	protected File[] getTestImageFiles()
+	{
+		File folderImages = new File(FOLDER_IMAGE);
 		
 		if(folderImages.isDirectory())
 		{
@@ -48,7 +57,7 @@ public class BaseTester {
 		return null;
 	}
 	
-	public static void testDetector(ObjDetectionBasePlugin aDetector)
+	public void testDetector(ObjDetectionBasePlugin aDetector)
 	{
 		OpenCvUtil.initOpenCV();
 		

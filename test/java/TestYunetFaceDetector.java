@@ -4,6 +4,6 @@ public class TestYunetFaceDetector extends BaseTester {
 
 	public static void main(String[] args)
 	{
-		testDetector(new YunetFaceDetector());
+		new BaseTester().testDetector(new YunetFaceDetector());
 	}
 }

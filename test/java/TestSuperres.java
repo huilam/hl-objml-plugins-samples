@@ -4,7 +4,7 @@ public class TestSuperres extends BaseTester{
 
 	public static void main(String[] args)
 	{
-		testDetector(new Upscale());
+		new BaseTester().testDetector(new Upscale());
 	}
 	
 }
