@@ -8,7 +8,6 @@ import java.util.Map;
 
 import org.json.JSONObject;
 import org.opencv.core.Core;
-import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;

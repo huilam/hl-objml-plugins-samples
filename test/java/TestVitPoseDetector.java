@@ -1,9 +1,11 @@
-import hl.objml.opencv.objdetection.dnn.plugins.detectron.Detectron2Detector;
+import hl.objml.opencv.objdetection.dnn.plugins.vitpose.VitPoseDetector;
 
-public class TestDetectron2Detector extends BaseTester {
+public class TestVitPoseDetector extends BaseTester {
 
 	public static void main(String[] args)
 	{
-		testDetector(new Detectron2Detector());
+		BaseTester test = new BaseTester();
+		test.setTestImageFolder("./test/images/cropped");
+		test.testDetector(new VitPoseDetector());
 	}
 }
