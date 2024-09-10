@@ -59,8 +59,7 @@ public class DBTextDetector extends ObjDetectionBasePlugin {
 	       
 	        File fileModel 	= new File(_model_filename);
 			
-	        float scoreThreshold 	= 0.9f;
-	        float nmsThreshold 		= 0.3f;
+	        float scoreThreshold 	= 1.0f;
 	                   
 	        if(textDetector==null)
 	        {        
@@ -100,7 +99,6 @@ public class DBTextDetector extends ObjDetectionBasePlugin {
 	        }
 	        
 	    	mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, scoreThreshold);
-			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, nmsThreshold);
         	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
 	        
 		}finally
