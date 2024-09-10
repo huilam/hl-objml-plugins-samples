@@ -88,7 +88,7 @@ public class DBTextDetector extends ObjDetectionBasePlugin {
 		        for (MatOfPoint contour : detections) {
 		            Imgproc.polylines(srcImg, List.of(contour), true, new Scalar(0, 255, 0), 2);
 		            
-		            objs.addDetectedObj(0, "text", 1.0f, new Rect2d(r.x, r.y, r.width, r.height));
+		           //objs.addDetectedObj(0, "text", 1.0f, new Rect2d(r.x, r.y, r.width, r.height));
 		        }
 	        }
 	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, detections.size());
