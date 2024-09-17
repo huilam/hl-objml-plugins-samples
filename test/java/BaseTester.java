@@ -70,10 +70,10 @@ public class BaseTester {
 		
 		if(aDetector.isPluginOK())
 		{
-			Properties prop = aDetector.getPluginProps();
-			
 			System.out.println("Detector : "+aDetector.getPluginName()+" ("+aDetector.getPluginMLModelFileName()+")");
-			
+			System.out.println("isPluginOK : "+aDetector.isPluginOK());
+
+			Properties prop = aDetector.getPluginProps();
 			
 			int iKeyPrefix = "objml.mlmodel.".length();
 			for(Object oKey : prop.keySet())
