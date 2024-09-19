@@ -27,35 +27,26 @@ public class DBTextDetector extends ObjDetectionBasePlugin {
 	public boolean isPluginOK() {
 		return super.isPluginOK(getClass());
 	}
-
-	@Override
-	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
-		Map<String, Object> mapResult = new HashMap<String, Object>();
-		
-		if(aMatInput!=null)
-		{
-			mapResult = detect(aMatInput);
-		}
-		
-		return mapResult;
-	}
 	
+
 	/**
 	 *  Model = https://docs.opencv.org/4.x/d4/d43/tutorial_dnn_text_spotting.html
 	 **/
-	private Map<String, Object>  detect(Mat aMatInput) {
+	@Override
+	public Map<String,Object> parseDetections(
+			List<Mat> aInferenceOutputMat, 
+			Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		
 		if(!isPluginOK() || aMatInput==null)
 			return null;
 		
-		Mat srcImg 	= null;
-		Mat faces 	= null;
-		
+		Mat matOutput 	= null;
 		
 		try {
-	        srcImg 		= aMatInput.clone();
-	        OpenCvUtil.removeAlphaChannel(srcImg);
+			matOutput 		= aMatInput.clone();
+	        OpenCvUtil.removeAlphaChannel(matOutput);
 	       
 	        File fileModel 	= new File(_model_filename);
 			
@@ -65,7 +56,6 @@ public class DBTextDetector extends ObjDetectionBasePlugin {
 	        {        
 	        	textDetector = new TextDetectionModel_DB(fileModel.getAbsolutePath());
 		    }
-	        
 	        
 	        // Set the input parameters
 	        int inputWidth = 736;
@@ -78,43 +68,36 @@ public class DBTextDetector extends ObjDetectionBasePlugin {
 	        // Perform text detection
 	        List<MatOfPoint> detections = new ArrayList<MatOfPoint>();
 	        		
-	        textDetector.detect(srcImg, detections);
+	        textDetector.detect(matOutput, detections);
 
         	DetectedObj objs = new DetectedObj();
 	        if(detections.size()>0)
 	        {
 		        // Draw detections on the image
 		        for (MatOfPoint contour : detections) {
-		            Imgproc.polylines(srcImg, List.of(contour), true, new Scalar(0, 255, 0), 2);
-		            
-		           //objs.addDetectedObj(0, "text", 1.0f, new Rect2d(r.x, r.y, r.width, r.height));
+		            Imgproc.polylines(matOutput, List.of(contour), true, new Scalar(0, 255, 0), 2);
+		       
 		        }
 	        }
 	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, detections.size());
-	        
-	        
-	        if(srcImg!=null)
+
+	        if(matOutput!=null)
 	        {
-	        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, srcImg.clone());
+	        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
 	        }
 	        
 	    	mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, scoreThreshold);
-        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
 	        
 		}finally
 		{
 			
-			if(faces!=null)
-			{
-				faces.release();
-			}
-			
-			if(srcImg!=null)
+			if(matOutput!=null)
         	{
-        		srcImg.release();
+				matOutput.release();
         	}
 		}
 		return mapResult;
-    }
+	}
+	
 
 }

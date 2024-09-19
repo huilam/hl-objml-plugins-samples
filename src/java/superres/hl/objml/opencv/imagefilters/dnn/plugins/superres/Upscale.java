@@ -1,6 +1,8 @@
 package hl.objml.opencv.imagefilters.dnn.plugins.superres;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -22,29 +24,13 @@ public class Upscale extends ObjDetectionBasePlugin {
 		return super.isPluginOK(getClass());
 	}
 	
-	@Override
-	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
-		Map<String, Object> mapResult = new HashMap<String, Object>();
-		try {
-			Mat matOutput = upScaling(aMatInput);
-			if(matOutput!=null)
-			{
-				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
-				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, 1);
-				//
-				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, -1);
-				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, -1);
-			}
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return mapResult;
-	}
 	
-    public Mat upScaling(Mat aMatInput) throws Exception
-    {
-    	if(!isPluginOK() || aMatInput==null)
+	@Override
+	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		List<Mat> listOutput = new ArrayList<>();
+		
+		if(!isPluginOK() || aMatInput==null)
     		return null;
     	
     	if(superres==null)
@@ -72,6 +58,30 @@ public class Upscale extends ObjDetectionBasePlugin {
     	
     	Mat matOutput = new Mat();
     	superres.upsample(aMatInput, matOutput);
-    	return matOutput;
-    }
+    	
+    	listOutput = new ArrayList<>();
+    	listOutput.add(matOutput);
+    	
+    	return listOutput;
+	}
+	
+	@Override
+	public Map<String,Object> parseDetections(
+			List<Mat> aInferenceOutputMat, 
+			Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		Map<String, Object> mapResult = new HashMap<String, Object>();
+		Mat matOutput = aInferenceOutputMat.get(0);
+		if(matOutput!=null)
+		{
+			mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
+			mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, 1);
+			//
+			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, -1);
+			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, -1);
+		}
+		
+		return mapResult;
+	}
+
 }

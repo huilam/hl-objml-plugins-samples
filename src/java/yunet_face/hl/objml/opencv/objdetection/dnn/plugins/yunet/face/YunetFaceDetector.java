@@ -1,7 +1,9 @@
 package hl.objml.opencv.objdetection.dnn.plugins.yunet.face;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.json.JSONObject;
@@ -28,26 +30,13 @@ public class YunetFaceDetector extends ObjDetectionBasePlugin {
 	}
 
 	@Override
-	public Map<String, Object> detect(Mat aMatInput, JSONObject aCustomThresholdJson) {
-		Map<String, Object> mapResult = new HashMap<String, Object>();
-		
-		if(aMatInput!=null)
-		{
-			mapResult = faceDetect(aMatInput);
-		}
-		
-		return mapResult;
-	}
-	
-	/////
-	private Map<String, Object>  faceDetect(Mat aMatInput) {
-		Map<String, Object> mapResult = new HashMap<String, Object>();
-		
+	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
 		if(!isPluginOK() || aMatInput==null)
 			return null;
 		
+		List<Mat> listOutputs = null;
 		Mat srcImg 	= null;
-		Mat faces 	= null;
 		
 		
 		try {
@@ -74,67 +63,76 @@ public class YunetFaceDetector extends ObjDetectionBasePlugin {
 	        
 	        faceDetectorYN.setInputSize(srcImg.size());
 	        
-	        faces = new Mat();
+	        Mat faces = new Mat();
 	        faceDetectorYN.detect(srcImg,faces);
 	        
-        	DetectedObj objs = new DetectedObj();
-	        if(faces!=null)
-	        {
-	        	 
-		        for (int i = 0; i < faces.height(); i++)
-		        {
-		        	int iX = (int) (faces.get(i, 0)[0]);
-		        	int iY = (int) (faces.get(i, 1)[0]);
-		        	int iW = (int) (faces.get(i, 2)[0]);
-		        	int iH = (int) (faces.get(i, 3)[0]);
-		        	
-		        	Rect r = new Rect(iX, iY, iW, iH);      	
-		            Imgproc.rectangle(srcImg, r, new Scalar(0, 255, 0), 2);
-		            double confidence = faces.get(i, 14)[0];
-		           
-		            objs.addDetectedObj(0, "face", confidence, new Rect2d(r.x, r.y, r.width, r.height));
-		
-		            Point leftEye = new Point(faces.get(i, 4)[0], faces.get(i, 5)[0]);
-		            Point rightEye = new Point(faces.get(i, 6)[0], faces.get(i, 7)[0]);
-		            Imgproc.circle(srcImg, leftEye, 2, new Scalar(255, 0, 0), 2); //Blue
-		            Imgproc.circle(srcImg, rightEye, 2, new Scalar(0, 0, 255), 2); //Red
-		            
-		            Point nose = new Point(faces.get(i, 8)[0], faces.get(i, 9)[0]);
-		            Imgproc.circle(srcImg, nose, 2, new Scalar(0, 255, 0), 2);
-		            
-		            
-		            Point leftMouth = new Point(faces.get(i, 10)[0], faces.get(i, 11)[0]);
-		            Point rightMouth = new Point(faces.get(i, 12)[0], faces.get(i, 13)[0]);
-		            Imgproc.circle(srcImg, leftMouth, 2, new Scalar(255, 0, 255), 2);
-		            Imgproc.circle(srcImg, rightMouth, 2, new Scalar(0, 255, 255), 2);
-		        }
-	        
-	        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, faces.height());
-	        }
-	        
-	        if(srcImg!=null)
-	        {
-	        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, srcImg.clone());
-	        }
-	        
-	    	mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, scoreThreshold);
-			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, nmsThreshold);
-        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
-	        
-		}finally
-		{
-			
-			if(faces!=null)
-			{
-				faces.release();
-			}
-			
-			if(srcImg!=null)
-        	{
-        		srcImg.release();
-        	}
+	        listOutputs = new ArrayList<Mat>();
+	        listOutputs.add(faces);
 		}
-		return mapResult;
-    }
+		finally
+		{
+			if(srcImg!=null)
+				srcImg.release();
+		}
+		
+		return listOutputs;
+	}
+	
+	@Override
+	public Map<String,Object> parseDetections(
+			List<Mat> aInferenceOutputMat, 
+			Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		Map<String, Object> mapResult = new HashMap<String, Object>();
+		Mat faces = aInferenceOutputMat.get(0);
+		
+		Mat outputImg = aMatInput.clone();
+        
+		
+		DetectedObj objs = new DetectedObj();
+        if(faces!=null)
+        {
+        	 
+	        for (int i = 0; i < faces.height(); i++)
+	        {
+	        	int iX = (int) (faces.get(i, 0)[0]);
+	        	int iY = (int) (faces.get(i, 1)[0]);
+	        	int iW = (int) (faces.get(i, 2)[0]);
+	        	int iH = (int) (faces.get(i, 3)[0]);
+	        	
+	        	Rect r = new Rect(iX, iY, iW, iH);      	
+	            Imgproc.rectangle(outputImg, r, new Scalar(0, 255, 0), 2);
+	            double confidence = faces.get(i, 14)[0];
+	           
+	            objs.addDetectedObj(0, "face", confidence, new Rect2d(r.x, r.y, r.width, r.height));
+	
+	            Point leftEye = new Point(faces.get(i, 4)[0], faces.get(i, 5)[0]);
+	            Point rightEye = new Point(faces.get(i, 6)[0], faces.get(i, 7)[0]);
+	            Imgproc.circle(outputImg, leftEye, 2, new Scalar(255, 0, 0), 2); //Blue
+	            Imgproc.circle(outputImg, rightEye, 2, new Scalar(0, 0, 255), 2); //Red
+	            
+	            Point nose = new Point(faces.get(i, 8)[0], faces.get(i, 9)[0]);
+	            Imgproc.circle(outputImg, nose, 2, new Scalar(0, 255, 0), 2);
+	            
+	            
+	            Point leftMouth = new Point(faces.get(i, 10)[0], faces.get(i, 11)[0]);
+	            Point rightMouth = new Point(faces.get(i, 12)[0], faces.get(i, 13)[0]);
+	            Imgproc.circle(outputImg, leftMouth, 2, new Scalar(255, 0, 255), 2);
+	            Imgproc.circle(outputImg, rightMouth, 2, new Scalar(0, 255, 255), 2);
+	        }
+        
+        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, faces.height());
+        }
+        
+        if(outputImg!=null)
+        {
+        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, outputImg.clone());
+        }
+        
+    	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
+    	
+    	
+    	return mapResult;
+	}
 
 }

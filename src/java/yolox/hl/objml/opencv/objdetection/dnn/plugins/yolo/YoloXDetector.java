@@ -50,8 +50,12 @@ public class YoloXDetector extends ObjDetectionBasePlugin {
 	 *  - https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/data/data_augment.py
 	 *  - https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/utils/demo_utils.py
 	 */
-	public Map<String, Object> detect(final Mat aMatInput, JSONObject aCustomThresholdJson) {
-		Map<String, Object> mapResult = new HashMap<String, Object>();
+	@Override
+	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		List<Mat> outputs = null;
+		Mat matInputImg = null;
+		Mat matDnnImg = null;
 		try {
 			if(NET_YOLOX==null)
 	        {
@@ -59,73 +63,88 @@ public class YoloXDetector extends ObjDetectionBasePlugin {
 	        }
 			
 			// Prepare input
-			Size sizeInput = DEF_INPUT_SIZE;
-			Mat matInputImg = aMatInput.clone();					
-			Mat matDnnImg = preProcess(matInputImg, sizeInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
+			matInputImg = aMatInput.clone();					
+			matDnnImg = preProcess(matInputImg, DEF_INPUT_SIZE, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
 			NET_YOLOX.setInput(matDnnImg);
 
 	        // Run inference
-	        List<Mat> outputs = new ArrayList<>();
+	        outputs = new ArrayList<>();
 	        NET_YOLOX.forward(outputs, NET_YOLOX.getUnconnectedOutLayersNames());
+		}
+		finally
+		{
+			if(matInputImg!=null)
+				matInputImg.release();
+			
+			if(matDnnImg!=null)
+				matDnnImg.release();
+		}
+		return outputs;
+			
+	}
+	
+	@Override
+	public Map<String,Object> parseDetections(
+			List<Mat> aInferenceOutputMat, 
+			Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		Map<String, Object> mapResult = new HashMap<String, Object>();
+		
+		
+		Mat matResult = aInferenceOutputMat.get(0);
+		matResult = postProcess(matResult, DEF_INPUT_SIZE);
+		
+		 // Decode detection
+        double scaleOrgW = aMatInput.width() / DEF_INPUT_SIZE.width;
+        double scaleOrgH = aMatInput.height() / DEF_INPUT_SIZE.height;
+        float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
+        float fNMSThreshold 		= DEF_NMS_THRESHOLD;
+        
+        List<Rect2d> outputBoxes 		= new ArrayList<>();
+        List<Float> outputConfidences 	= new ArrayList<>();
+        List<Integer> outputClassIds 	= new ArrayList<>();
+        //
+        decodePredictions(matResult, 
+        		scaleOrgW, scaleOrgH,  
+        		outputBoxes, outputConfidences, outputClassIds, 
+        		fConfidenceThreshold);
+        //
+        if(outputBoxes.size()>0)
+        {
+	        // Apply NMS
+	        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
-	        // Process output
-	        Mat matResult = outputs.get(0);
-			matResult = postProcess(matResult, sizeInput);
-
-			 // Decode detection
-	        double scaleOrgW = aMatInput.width() / sizeInput.width;
-	        double scaleOrgH = aMatInput.height() / sizeInput.height;
-	        float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
-	        float fNMSThreshold 		= DEF_NMS_THRESHOLD;
-	        
-	        List<Rect2d> outputBoxes 		= new ArrayList<>();
-	        List<Float> outputConfidences 	= new ArrayList<>();
-	        List<Integer> outputClassIds 	= new ArrayList<>();
-	        //
-	        decodePredictions(matResult, 
-	        		scaleOrgW, scaleOrgH,  
-	        		outputBoxes, outputConfidences, outputClassIds, 
-	        		fConfidenceThreshold);
-	        //
-	        if(outputBoxes.size()>0)
-	        {
-		        // Apply NMS
-		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
-
-		        // Calculate bounding boxes
-		        DetectedObj objs = new DetectedObj();
-		        for (int idx : indices) {
-		        	
-		            Rect2d box 			= outputBoxes.get(idx);
-		            int classId 		= outputClassIds.get(idx);
-		            String classLabel 	= OBJ_CLASSESS.get(classId);
-		            Float confScore 	= outputConfidences.get(idx);
-		            
-		            objs.addDetectedObj(classId, classLabel, confScore, box);
-		        }
-		        
-		        // Draw bounding boxes
-				if(ANNOTATE_OUTPUT_IMG)
-		        {
-					Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, objs);
-					mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
-		        }
-		        
-		        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
-				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
-
-				//
-				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
-				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
-				//
+	        // Calculate bounding boxes
+	        DetectedObj objs = new DetectedObj();
+	        for (int idx : indices) {
+	        	
+	            Rect2d box 			= outputBoxes.get(idx);
+	            int classId 		= outputClassIds.get(idx);
+	            String classLabel 	= OBJ_CLASSESS.get(classId);
+	            Float confScore 	= outputConfidences.get(idx);
+	            
+	            objs.addDetectedObj(classId, classLabel, confScore, box);
 	        }
 	        
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		return mapResult;
+	        // Draw bounding boxes
+			if(ANNOTATE_OUTPUT_IMG)
+	        {
+				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, objs);
+				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+	        }
+	        
+	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
+			mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
+
+			//
+			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
+			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
+			//
+        }
+        
+        return mapResult;
 	}
+	
 	
 	private void init()
 	{
