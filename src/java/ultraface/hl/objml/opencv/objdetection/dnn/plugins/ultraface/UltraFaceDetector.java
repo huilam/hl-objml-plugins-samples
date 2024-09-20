@@ -32,7 +32,7 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
     private static Size DEF_INPUT_SIZE 				= new Size(320,240);
     
     private static boolean SWAP_RB_CHANNEL			= true;
-    private static boolean APPLY_IMG_PADDING 		= true;
+    private static boolean APPLY_IMG_PADDING 		= false;
     private static boolean RESIZE_INPUT_IMAGE 		= false;
     private static boolean ANNOTATE_OUTPUT_IMG 		= true;
 
@@ -280,21 +280,14 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 		// Output Mat = Box:{1, 4420, 4} , Score {1, 4420, 2}
 		
 		
-		System.out.println("matOutputs="+matOutputs);
-		
         Mat matBoxes 	=  matOutputs.get(0);
         Mat matScores 	=  matOutputs.get(1);
         
         matBoxes 	= matBoxes.reshape(1, new int[] {4420, 4});
         matScores 	= matScores.reshape(1, new int[] {4420, 2});
         
-        
-        int numDetections = matBoxes.rows(); 
-		
-System.out.println("numDetections="+numDetections);
-		
-		double dScaleW = (DEF_INPUT_SIZE.width);
-		double dScaleH = (DEF_INPUT_SIZE.height);
+		double dScaleW = sizeOrg.width / DEF_INPUT_SIZE.width;
+		double dScaleH = sizeOrg.height /DEF_INPUT_SIZE.height;
 		
 		for (int i = 0; i < matBoxes.rows(); i++) {
 			
@@ -302,20 +295,24 @@ System.out.println("numDetections="+numDetections);
 		    double dConfScore = dScores[0];
 		    if(dConfScore > aConfidenceThreshold)
 		    {
-			    double left 	= matBoxes.get(i, 0)[0] * dScaleW;
-			    double top 		= matBoxes.get(i, 1)[0] * dScaleH;
+			    double left 	= matBoxes.get(i, 0)[0] * DEF_INPUT_SIZE.width;
+			    double top 		= matBoxes.get(i, 1)[0] * DEF_INPUT_SIZE.height;
 			    //
-			    double right 	= matBoxes.get(i, 2)[0] * dScaleW;
-			    double bottom 	= matBoxes.get(i, 3)[0] * dScaleH;
+			    double right 	= matBoxes.get(i, 2)[0] * DEF_INPUT_SIZE.width;
+			    double bottom 	= matBoxes.get(i, 3)[0] * DEF_INPUT_SIZE.height;
 			
 			    // Calculate width and height
 			    double width 	= right - left;
 			    double height 	= bottom - top;
 			    
-			    // Create a new Rect2d object
-			    Rect2d rect = new Rect2d(left, top, width, height);
+			    left *= dScaleW;
+			    width *= dScaleW;
 			    
-//System.out.println("rect="+rect);			    
+			    top *= dScaleH;
+			    height *= dScaleH;
+			    
+			    // Create a new Rect2d object
+			    Rect2d rect = new Rect2d(left, top, width, height);		    
 			    boxes.add(rect);
 			
 			    // Add the confidence score
@@ -323,8 +320,5 @@ System.out.println("numDetections="+numDetections);
 			    classIds.add(0);
 		    }
 		}
-
-		System.out.println("boxes.size()="+boxes.size());
-		
 	}
 }
