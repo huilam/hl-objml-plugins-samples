@@ -8,6 +8,9 @@ import java.util.Map;
 
 import org.json.JSONObject;
 import org.opencv.core.Mat;
+import org.opencv.core.MatOfFloat;
+import org.opencv.core.MatOfInt;
+import org.opencv.core.MatOfRect2d;
 import org.opencv.core.Rect2d;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -24,12 +27,13 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 	
 	private static Net NET_DNN						= null;
 	private static List<String> OBJ_CLASSESS 		= new ArrayList<String>();
-    private static float DEF_CONFIDENCE_THRESHOLD 	= 0.7f;
+    private static float DEF_CONFIDENCE_THRESHOLD 	= 0.6f;
     private static float DEF_NMS_THRESHOLD 			= 0.5f;
     private static Size DEF_INPUT_SIZE 				= new Size(320,240);
     
-    private static boolean SWAP_RB_CHANNEL			= false;
+    private static boolean SWAP_RB_CHANNEL			= true;
     private static boolean APPLY_IMG_PADDING 		= true;
+    private static boolean RESIZE_INPUT_IMAGE 		= false;
     private static boolean ANNOTATE_OUTPUT_IMG 		= true;
 
 
@@ -87,8 +91,6 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 		try {
 
 			 // Decode detection
-	        double scaleOrgW = aMatInput.width() / DEF_INPUT_SIZE.width;
-	        double scaleOrgH = aMatInput.height() / DEF_INPUT_SIZE.height;
 	        float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
 	        float fNMSThreshold 		= DEF_NMS_THRESHOLD;
 	        
@@ -97,15 +99,18 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 	        List<Integer> outputClassIds 	= new ArrayList<>();
 	        //
 	        decodePredictions(aInferenceOutputMat, 
-	        		scaleOrgW, scaleOrgH,  
+	        		aMatInput.size(),  
 	        		outputBoxes, outputConfidences, outputClassIds, 
 	        		fConfidenceThreshold);
 	        //
 	        if(outputBoxes.size()>0)
 	        {
+	        	 // Apply NMS
+		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
+
 		        // Calculate bounding boxes
 		        DetectedObj objs = new DetectedObj();
-		        for (int idx=0; idx<outputBoxes.size(); idx++) {
+		        for (int idx : indices) {
 		        	
 		            Rect2d box 			= outputBoxes.get(idx);
 		            int classId 		= outputClassIds.get(idx);
@@ -206,6 +211,25 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 		}
 	}
 	
+	private static int[] applyNMS(List<Rect2d> aBoxesList, List<Float> aConfidencesList, float CONFIDENCE_THRESHOLD, float NMS_THRESHOLD)
+	{
+        MatOfInt indices = new MatOfInt();
+
+        if(aBoxesList.size()>0)
+        {
+	        // Apply Non-Maximum Suppression
+	        MatOfRect2d boxesMat = new MatOfRect2d();
+	        boxesMat.fromList(aBoxesList);
+	        
+	        MatOfFloat confidencesMat = new MatOfFloat();
+	        confidencesMat.fromList(aConfidencesList);
+	        
+	        Dnn.NMSBoxes(boxesMat, confidencesMat, CONFIDENCE_THRESHOLD, NMS_THRESHOLD, indices);
+        }
+        return indices.toArray();
+
+	}
+	
 	private static Mat inferencePreProcess(Mat aMatInput, Size sizeInput, 
 			boolean isApplyImgPadding, boolean isSwapRBChannel)
 	{
@@ -216,10 +240,9 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 			try {
 				
 				int iMaxPixels = Math.max(aMatInput.width(), aMatInput.height());
-				matPaddedImg = new Mat(new Size(iMaxPixels,iMaxPixels), aMatInput.type(), Scalar.all(0));
+				matPaddedImg = new Mat(new Size(iMaxPixels,iMaxPixels), aMatInput.type(), Scalar.all(127));
 				matROI = matPaddedImg.submat(0,aMatInput.rows(),0,aMatInput.cols());
 				aMatInput.copyTo(matROI);
-				
 				aMatInput = matPaddedImg.clone();
 			}
 			finally
@@ -229,6 +252,12 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 				if(matROI!=null)
 					matROI.release();
 			}
+		}
+		
+		//resize
+		if(RESIZE_INPUT_IMAGE)
+		{
+			Imgproc.resize(aMatInput, aMatInput, sizeInput);
 		}
 		
 		// Convert from BGR to RGB
@@ -242,8 +271,7 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 
 	private void decodePredictions(
 	        List<Mat> matOutputs, 
-	        final double aScaleW,
-	        final double aScaleH,
+	        Size sizeOrg,
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
 	        final float aConfidenceThreshold) {
 	    
@@ -251,68 +279,52 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 		// Input Mat = 1 * 3(Color) * 240(H) * 320(W)
 		// Output Mat = Box:{1, 4420, 4} , Score {1, 4420, 2}
 		
+		
+		System.out.println("matOutputs="+matOutputs);
+		
         Mat matBoxes 	=  matOutputs.get(0);
         Mat matScores 	=  matOutputs.get(1);
         
-        int numDetections = matScores!=null?matScores.size(1):0; 
+        matBoxes 	= matBoxes.reshape(1, new int[] {4420, 4});
+        matScores 	= matScores.reshape(1, new int[] {4420, 2});
+        
+        
+        int numDetections = matBoxes.rows(); 
 		
 System.out.println("numDetections="+numDetections);
-System.out.println("matBoxes.empty()="+matBoxes.empty());
-System.out.println("matScores.empty()="+matScores.empty());
+		
+		double dScaleW = (DEF_INPUT_SIZE.width);
+		double dScaleH = (DEF_INPUT_SIZE.height);
+		
+		for (int i = 0; i < matBoxes.rows(); i++) {
+			
+			double[] dScores = matScores.get(i, 1);
+		    double dConfScore = dScores[0];
+		    if(dConfScore > aConfidenceThreshold)
+		    {
+			    double left 	= matBoxes.get(i, 0)[0] * dScaleW;
+			    double top 		= matBoxes.get(i, 1)[0] * dScaleH;
+			    //
+			    double right 	= matBoxes.get(i, 2)[0] * dScaleW;
+			    double bottom 	= matBoxes.get(i, 3)[0] * dScaleH;
+			
+			    // Calculate width and height
+			    double width 	= right - left;
+			    double height 	= bottom - top;
+			    
+			    // Create a new Rect2d object
+			    Rect2d rect = new Rect2d(left, top, width, height);
+			    
+//System.out.println("rect="+rect);			    
+			    boxes.add(rect);
+			
+			    // Add the confidence score
+			    confidences.add((float)dConfScore);
+			    classIds.add(0);
+		    }
+		}
 
-		long lSkipped = 0;
-		if(numDetections>0)
-        {
-			for (int i = 0; i < numDetections; i++) 
-			{
-	            double[] scoreArray = matScores.get(0, i);
-	            
-	            
-	            if (scoreArray == null || scoreArray.length < 2) {
-	            	lSkipped++;
-	                continue;
-	            }
-	            
-System.out.println("scoreArray="+scoreArray.length);	            
-	            
-				//Get the score for the face class (index 1)
-				int classId = (int) scoreArray[0];
-	            float faceScore = (float) scoreArray[1];
-System.out.println("faceScore="+faceScore);
-	            
-				double dWidth 	= 320 * aScaleW;
-				double dHeight 	= 240 * aScaleH;
-	            
-	            if (faceScore > aConfidenceThreshold) {
-	                // Get the bounding box coordinates (in normalized format)
-	                double[] boxArray = matBoxes.get(1, i);
-	                
-
-	                //
-	                int x1 = (int) (boxArray[0] * dWidth);
-	                int y1 = (int) (boxArray[1] * dHeight);
-	                //
-	                int x2 = (int) (boxArray[2] * dWidth);
-	                int y2 = (int) (boxArray[3] * dHeight);
-	                //
-	                
-	                int width	= y2 - y1;
-	                int height	= x2 - x1;
-				
-				            
-		            Rect2d r = new Rect2d(x1, y1, width, height);
-		            
-		            classIds.add(classId);
-		            confidences.add((float)faceScore);
-		            boxes.add(r);
-		            
-			    }
-
-	        }
-			System.err.println("Error: Score array is null or has incorrect size. - "+lSkipped);
-	        
-        }
-        
+		System.out.println("boxes.size()="+boxes.size());
 		
 	}
 }
