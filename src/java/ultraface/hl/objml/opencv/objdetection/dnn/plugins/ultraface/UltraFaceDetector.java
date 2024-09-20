@@ -8,9 +8,6 @@ import java.util.Map;
 
 import org.json.JSONObject;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
-import org.opencv.core.MatOfRect2d;
 import org.opencv.core.Rect2d;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -25,7 +22,7 @@ import hl.objml2.plugin.ObjDetectionBasePlugin;
 
 public class UltraFaceDetector extends ObjDetectionBasePlugin {
 	
-	private static Net NET_ULTRAFACE 				= null;
+	private static Net NET_DNN						= null;
 	private static List<String> OBJ_CLASSESS 		= new ArrayList<String>();
     private static float DEF_CONFIDENCE_THRESHOLD 	= 0.7f;
     private static float DEF_NMS_THRESHOLD 			= 0.5f;
@@ -49,33 +46,49 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 	 *  ONNX Model = https://github.com/Linzaer/Ultra-Light-Fast-Generic-Face-Detector-1MB/tree/master/models/onnx
 	 *  
 	 */
-	public Map<String, Object> detect(final Mat aMatInput, JSONObject aCustomThresholdJson) {
-		Map<String, Object> mapResult = new HashMap<String, Object>();
+	@Override
+	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		if(NET_DNN==null)
+        {
+			init();
+        }
+		
+		Mat matDnnImg 		= null;
+		List<Mat> outputs 	= null;
 		try {
-			if(NET_ULTRAFACE==null)
-	        {
-				init();
-	        }
-			
 			// Prepare input
 			Size sizeInput 	= DEF_INPUT_SIZE;
-			Mat matInputImg = aMatInput.clone();					
-			Mat matDnnImg 	= preProcess(matInputImg, sizeInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
-			NET_ULTRAFACE.setInput(matDnnImg);
-
-//System.out.println("matDnnImg="+matDnnImg);
+			matDnnImg = aMatInput.clone();					
+			matDnnImg 	= inferencePreProcess(matDnnImg, sizeInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
+			NET_DNN.setInput(matDnnImg);
 			
 	        // Run the forward pass
-	        List<Mat> outputs = new ArrayList<>();
+	        outputs = new ArrayList<>();
 	        List<String> outNames = new ArrayList<>();
 	        outNames.add("boxes");   // Name of the bounding boxes output
 	        outNames.add("scores");  // Name of the scores output
-	        NET_ULTRAFACE.forward(outputs, outNames);
-
+	        NET_DNN.forward(outputs, outNames);
+		}
+		finally
+		{
+			if(matDnnImg!=null)
+				matDnnImg.release();
+		}
+        return outputs;
+	}
+	
+	@Override
+	public Map<String,Object> parseDetections(
+			List<Mat> aInferenceOutputMat, 
+			Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		Map<String, Object> mapResult = new HashMap<String, Object>();
+		try {
 
 			 // Decode detection
-	        double scaleOrgW = aMatInput.width() / sizeInput.width;
-	        double scaleOrgH = aMatInput.height() / sizeInput.height;
+	        double scaleOrgW = aMatInput.width() / DEF_INPUT_SIZE.width;
+	        double scaleOrgH = aMatInput.height() / DEF_INPUT_SIZE.height;
 	        float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
 	        float fNMSThreshold 		= DEF_NMS_THRESHOLD;
 	        
@@ -83,21 +96,16 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 	        List<Float> outputConfidences 	= new ArrayList<>();
 	        List<Integer> outputClassIds 	= new ArrayList<>();
 	        //
-	        decodePredictions(outputs, 
+	        decodePredictions(aInferenceOutputMat, 
 	        		scaleOrgW, scaleOrgH,  
 	        		outputBoxes, outputConfidences, outputClassIds, 
 	        		fConfidenceThreshold);
-	        
-//System.out.println("decodePredictions.outputBoxes.size()="+outputBoxes.size());
 	        //
 	        if(outputBoxes.size()>0)
 	        {
-		        // Apply NMS
-		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
-
 		        // Calculate bounding boxes
 		        DetectedObj objs = new DetectedObj();
-		        for (int idx : indices) {
+		        for (int idx=0; idx<outputBoxes.size(); idx++) {
 		        	
 		            Rect2d box 			= outputBoxes.get(idx);
 		            int classId 		= outputClassIds.get(idx);
@@ -115,7 +123,7 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 		        }
 		        
 		        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
-				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
+				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, outputBoxes.size());
 
 				//
 				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
@@ -127,14 +135,14 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		return mapResult;
+		return mapResult;	
 	}
 	
 	private void init()
 	{
-		NET_ULTRAFACE = Dnn.readNetFromONNX( getModelFileName());
+		NET_DNN = Dnn.readNetFromONNX( getModelFileName());
 		
-		if(NET_ULTRAFACE!=null)
+		if(NET_DNN!=null)
 		{
 			String sSupporedLabels = (String) getPluginProps().get("objml.mlmodel.detection.support-labels");
 			if(sSupporedLabels!=null)
@@ -194,15 +202,11 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 				}
 						
 			}
-			//System.out.println();
-			//System.out.println("*init* DEF_CONFIDENCE_THRESHOLD="+DEF_CONFIDENCE_THRESHOLD);
-			//System.out.println("*init* DEF_NMS_THRESHOLD="+DEF_NMS_THRESHOLD);
-			//System.out.println("*init* DEF_INPUT_SIZE="+DEF_INPUT_SIZE);
 
 		}
 	}
 	
-	private static Mat preProcess(Mat aMatInput, Size sizeInput, 
+	private static Mat inferencePreProcess(Mat aMatInput, Size sizeInput, 
 			boolean isApplyImgPadding, boolean isSwapRBChannel)
 	{
 		if(isApplyImgPadding)
@@ -235,25 +239,6 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 
 		return Dnn.blobFromImage(aMatInput, 1.0/128, sizeInput, Scalar.all(127), true, false);		
 	}
-	
-	private static int[] applyNMS(List<Rect2d> aBoxesList, List<Float> aConfidencesList, float CONFIDENCE_THRESHOLD, float NMS_THRESHOLD)
-	{
-        MatOfInt indices = new MatOfInt();
-
-        if(aBoxesList.size()>0)
-        {
-	        // Apply Non-Maximum Suppression
-	        MatOfRect2d boxesMat = new MatOfRect2d();
-	        boxesMat.fromList(aBoxesList);
-	        
-	        MatOfFloat confidencesMat = new MatOfFloat();
-	        confidencesMat.fromList(aConfidencesList);
-	        
-	        Dnn.NMSBoxes(boxesMat, confidencesMat, CONFIDENCE_THRESHOLD, NMS_THRESHOLD, indices);
-        }
-        return indices.toArray();
-
-	}
 
 	private void decodePredictions(
 	        List<Mat> matOutputs, 
@@ -262,7 +247,6 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
 	        final float aConfidenceThreshold) {
 	    
-		
 		// https://docs.openvino.ai/2024/omz_models_model_ultra_lightweight_face_detection_rfb_320.html
 		// Input Mat = 1 * 3(Color) * 240(H) * 320(W)
 		// Output Mat = Box:{1, 4420, 4} , Score {1, 4420, 2}
@@ -276,14 +260,16 @@ System.out.println("numDetections="+numDetections);
 System.out.println("matBoxes.empty()="+matBoxes.empty());
 System.out.println("matScores.empty()="+matScores.empty());
 
+		long lSkipped = 0;
 		if(numDetections>0)
         {
-			for (int i = 0; i < numDetections; i++) {
+			for (int i = 0; i < numDetections; i++) 
+			{
 	            double[] scoreArray = matScores.get(0, i);
 	            
 	            
 	            if (scoreArray == null || scoreArray.length < 2) {
-	                System.err.println("Error: Score array is null or has incorrect size.");
+	            	lSkipped++;
 	                continue;
 	            }
 	            
@@ -323,6 +309,7 @@ System.out.println("faceScore="+faceScore);
 			    }
 
 	        }
+			System.err.println("Error: Score array is null or has incorrect size. - "+lSkipped);
 	        
         }
         

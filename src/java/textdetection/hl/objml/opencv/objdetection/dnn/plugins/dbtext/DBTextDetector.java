@@ -14,7 +14,6 @@ import org.opencv.core.Size;
 import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextDetectionModel_DB;
 import org.opencv.imgproc.Imgproc;
-import hl.objml2.common.DetectedObj;
 import hl.objml2.plugin.ObjDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
@@ -32,6 +31,27 @@ public class DBTextDetector extends ObjDetectionBasePlugin {
 	/**
 	 *  Model = https://docs.opencv.org/4.x/d4/d43/tutorial_dnn_text_spotting.html
 	 **/
+	
+	@Override
+	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		File fileModel 	= new File(_model_filename);
+                   
+        if(textDetector==null)
+        {        
+        	textDetector = new TextDetectionModel_DB(fileModel.getAbsolutePath());
+	    }
+        
+        // Set the input parameters
+        int inputWidth = 736;
+        int inputHeight = 736;
+        Size inputSize = new Size(inputWidth, inputHeight);
+        Scalar mean = new Scalar(122.67891434, 116.66876762, 104.00698793);
+        textDetector.setInputParams(1.0 / 255.0, inputSize, mean, true);
+        
+		return null;
+	}
+	
 	@Override
 	public Map<String,Object> parseDetections(
 			List<Mat> aInferenceOutputMat, 
@@ -45,48 +65,31 @@ public class DBTextDetector extends ObjDetectionBasePlugin {
 		Mat matOutput 	= null;
 		
 		try {
-			matOutput 		= aMatInput.clone();
+			matOutput 	= aMatInput.clone();
 	        OpenCvUtil.removeAlphaChannel(matOutput);
-	       
-	        File fileModel 	= new File(_model_filename);
-			
-	        float scoreThreshold 	= 1.0f;
-	                   
-	        if(textDetector==null)
-	        {        
-	        	textDetector = new TextDetectionModel_DB(fileModel.getAbsolutePath());
-		    }
 	        
-	        // Set the input parameters
-	        int inputWidth = 736;
-	        int inputHeight = 736;
-	        Size inputSize = new Size(inputWidth, inputHeight);
-	        Scalar mean = new Scalar(122.67891434, 116.66876762, 104.00698793);
-	        textDetector.setInputParams(1.0 / 255.0, inputSize, mean, true);
-
-	       
 	        // Perform text detection
 	        List<MatOfPoint> detections = new ArrayList<MatOfPoint>();
-	        		
 	        textDetector.detect(matOutput, detections);
-
-        	DetectedObj objs = new DetectedObj();
+        	
 	        if(detections.size()>0)
 	        {
 		        // Draw detections on the image
 		        for (MatOfPoint contour : detections) {
 		            Imgproc.polylines(matOutput, List.of(contour), true, new Scalar(0, 255, 0), 2);
-		       
 		        }
 	        }
+	        
 	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, detections.size());
 
 	        if(matOutput!=null)
 	        {
-	        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
+	        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput.clone());
 	        }
 	        
-	    	mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, scoreThreshold);
+	        //
+			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, -1);
+			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, -1);
 	        
 		}finally
 		{
