@@ -103,13 +103,13 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 	        		outputBoxes, outputConfidences, outputClassIds, 
 	        		fConfidenceThreshold);
 	        //
+	        DetectedObj objs = new DetectedObj();
 	        if(outputBoxes.size()>0)
 	        {
 	        	 // Apply NMS
 		        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
 		        // Calculate bounding boxes
-		        DetectedObj objs = new DetectedObj();
 		        for (int idx : indices) {
 		        	
 		            Rect2d box 			= outputBoxes.get(idx);
@@ -126,15 +126,15 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 					Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, objs);
 					mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 		        }
-		        
-		        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
-				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, outputBoxes.size());
 
 				//
 				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
 				mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
 				//
 	        }
+	        
+	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
+			mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, outputBoxes.size());
 	        
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -278,13 +278,17 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 		// https://docs.openvino.ai/2024/omz_models_model_ultra_lightweight_face_detection_rfb_320.html
 		// Input Mat = 1 * 3(Color) * 240(H) * 320(W)
 		// Output Mat = Box:{1, 4420, 4} , Score {1, 4420, 2}
+		//
+		// for 640 model input 640x480, output box {1,17640,4}
 		
 		
         Mat matBoxes 	=  matOutputs.get(0);
         Mat matScores 	=  matOutputs.get(1);
         
-        matBoxes 	= matBoxes.reshape(1, new int[] {4420, 4});
-        matScores 	= matScores.reshape(1, new int[] {4420, 2});
+        int totalAnchors = matBoxes.size(1);
+        
+        matBoxes 	= matBoxes.reshape(1, new int[] {totalAnchors, 4});
+        matScores 	= matScores.reshape(1, new int[] {totalAnchors, 2});
         
 		double dScaleW = sizeOrg.width / DEF_INPUT_SIZE.width;
 		double dScaleH = sizeOrg.height /DEF_INPUT_SIZE.height;
