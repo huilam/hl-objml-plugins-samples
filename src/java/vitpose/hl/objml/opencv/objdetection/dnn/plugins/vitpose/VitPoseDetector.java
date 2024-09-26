@@ -27,7 +27,7 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 	private static List<String> OBJ_CLASSESS 		= new ArrayList<String>();
     private static float DEF_CONFIDENCE_THRESHOLD 	= 0.5f;
     private static float DEF_NMS_THRESHOLD 			= 0.4f;
-    private static Size DEF_INPUT_SIZE 				= new Size(256, 192);
+    private static Size DEF_INPUT_SIZE 				= new Size(192, 256);
     private static boolean SWAP_RB_CHANNEL			= true;
     private static boolean APPLY_IMG_PADDING 		= false;
     private static boolean ANNOTATE_OUTPUT_IMG 		= true;
