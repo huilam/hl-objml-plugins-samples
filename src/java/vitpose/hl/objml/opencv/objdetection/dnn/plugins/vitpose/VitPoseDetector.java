@@ -210,15 +210,13 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 		matResult = postProcess(matResult, sizeDnnInput);
 
 		 // Decode detection
-        double scaleOrgW = aMatInput.width() / sizeDnnInput.width;
-        double scaleOrgH = aMatInput.height() / sizeDnnInput.height;
         float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
         float fNMSThreshold 		= DEF_NMS_THRESHOLD;
         
         List<DetectedObj> outputKeypoints 	= new ArrayList<>();
         //
         decodePredictions(matResult, 
-        		scaleOrgW, scaleOrgH,  
+        		aMatInput.size(),
         		outputKeypoints, 
         		fConfidenceThreshold);
         //
@@ -255,8 +253,7 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 
 	private void decodePredictions(
 	        final Mat matResult, 
-	        final double aScaleW,
-	        final double aScaleH,
+	        final Size aMatSize,
 	        List<DetectedObj> aDetectedObj,
 	        final float aConfidenceThreshold) {
 	    
@@ -265,8 +262,12 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 		// Extract the heatmaps (output has shape [1, 17, 64, 48])
         int numKeypoints = (int) output.size(1); // Number of keypoints (17)
         int height = output.size(2); // Height of heatmaps (64)
-        //int width = output.size(3); // Width of heatmaps (48)
+        int width = output.size(3); // Width of heatmaps (48)
 
+        double dScaleW = aMatSize.width / width;
+        double dScaleH = aMatSize.height / height;
+        
+        
         for (int i = 0; i < numKeypoints; i++) {
             // Extract the i-th channel (heatmap)
             Mat heatmap = new Mat();
@@ -276,8 +277,8 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
             Core.MinMaxLocResult minMaxLocResult = Core.minMaxLoc(heatmap);
             Point peak = minMaxLocResult.maxLoc;
 
-            double x = peak.x * aScaleW;
-            double y = peak.y * aScaleH;
+            double x = peak.x * dScaleW;
+            double y = peak.y * dScaleH;
             double confidence = minMaxLocResult.maxVal;
             String label = OBJ_CLASSESS.get(i);
             
