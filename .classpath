@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/java/yunet_face"/>
+	<classpathentry kind="src" path="src/java/maskrcnn"/>
 	<classpathentry kind="src" path="src/java/ultraface"/>
 	<classpathentry kind="src" path="src/java/textdetection"/>
 	<classpathentry kind="src" path="src/java/vitpose"/>
