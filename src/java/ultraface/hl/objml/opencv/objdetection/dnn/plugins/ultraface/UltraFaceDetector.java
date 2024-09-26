@@ -20,6 +20,7 @@ import org.opencv.imgproc.Imgproc;
 
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.DetectedObjUtil;
+import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.ObjDetectionBasePlugin;
 
 
@@ -103,7 +104,7 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 	        		outputBoxes, outputConfidences, outputClassIds, 
 	        		fConfidenceThreshold);
 	        //
-	        DetectedObj objs = new DetectedObj();
+	        FrameDetectedObj frameObjs = new FrameDetectedObj();
 	        if(outputBoxes.size()>0)
 	        {
 	        	 // Apply NMS
@@ -117,13 +118,14 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 		            String classLabel 	= OBJ_CLASSESS.get(classId);
 		            Float confScore 	= outputConfidences.get(idx);
 		            
-		            objs.addDetectedObj(classId, classLabel, confScore, box);
+		            DetectedObj obj = new DetectedObj(classId, classLabel, box, confScore);
+		            frameObjs.addDetectedObj(obj);
 		        }
 		        
 		        // Draw bounding boxes
 				if(ANNOTATE_OUTPUT_IMG)
 		        {
-					Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, objs);
+					Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs);
 					mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 		        }
 
@@ -133,7 +135,7 @@ public class UltraFaceDetector extends ObjDetectionBasePlugin {
 				//
 	        }
 	        
-	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
+	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, frameObjs.toJson());
 			mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, outputBoxes.size());
 	        
 		} catch (Exception e) {

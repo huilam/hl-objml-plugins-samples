@@ -9,9 +9,6 @@ import java.util.Map;
 import org.json.JSONObject;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
-import org.opencv.core.MatOfFloat;
-import org.opencv.core.MatOfInt;
-import org.opencv.core.MatOfRect2d;
 import org.opencv.core.Point;
 import org.opencv.core.Rect2d;
 import org.opencv.core.Scalar;
@@ -22,19 +19,18 @@ import org.opencv.imgproc.Imgproc;
 
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.DetectedObjUtil;
+import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.ObjDetectionBasePlugin;
-
 
 public class VitPoseDetector extends ObjDetectionBasePlugin {
 	
 	private static Net NET_DNN 						= null;
 	private static List<String> OBJ_CLASSESS 		= new ArrayList<String>();
-    private static float DEF_CONFIDENCE_THRESHOLD 	= 0.9f;
-    private static float DEF_NMS_THRESHOLD 			= 0.8f;
-    private static Size DEF_INPUT_SIZE 				= new Size(192,256);
-    
+    private static float DEF_CONFIDENCE_THRESHOLD 	= 0.5f;
+    private static float DEF_NMS_THRESHOLD 			= 0.4f;
+    private static Size DEF_INPUT_SIZE 				= new Size(256, 192);
     private static boolean SWAP_RB_CHANNEL			= true;
-    private static boolean APPLY_IMG_PADDING 		= true;
+    private static boolean APPLY_IMG_PADDING 		= false;
     private static boolean ANNOTATE_OUTPUT_IMG 		= true;
 
 
@@ -42,115 +38,8 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 	public boolean isPluginOK() {
 		return super.isPluginOK(getClass());
 	}
-
-	/**
-	 *  ONNX Model = https://github.com/Pukei-Pukei/ViTPose-ONNX/tree/main
-	 *             = https://huggingface.co/JunkyByte/easy_ViTPose/tree/main/onnx/coco
-	 *  
-	 *  Processing Reference
-	 *  - https://github.com/Pukei-Pukei/ViTPose-ONNX/blob/main/utils/vitpose_util.py
-	 */
 	
-	@Override
-	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
-	{
-		List<Mat> outputs 	= null;
-		Mat matInputImg 	= null;
-		Mat matDnnImg 		= null;
-		try {
-			if(NET_DNN==null)
-	        {
-				init();
-	        }
-			
-			// Prepare input
-			matInputImg = aMatInput.clone();					
-			Size sizeDnnInput = DEF_INPUT_SIZE;
-			
-			matDnnImg = doInferencePreProcess(matInputImg, sizeDnnInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
-			NET_DNN.setInput(matDnnImg);
 
-	        // Run inference
-			outputs = new ArrayList<>();
-			NET_DNN.forward(outputs, NET_DNN.getUnconnectedOutLayersNames());
-
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} 
-		finally
-		{
-			if(matDnnImg!=null)
-				matDnnImg.release();
-		}
-			
-		return outputs;
-	}
-	
-	@Override
-	public Map<String,Object> parseDetections(
-			List<Mat> aInferenceOutputMat, 
-			Mat aMatInput, JSONObject aCustomThresholdJson)
-	{
-		Map<String, Object> mapResult = new HashMap<String, Object>();
-		List<Mat> outputs = aInferenceOutputMat;
-		
-		Size sizeDnnInput = DEF_INPUT_SIZE;
-		
-		// Process output
-        Mat matResult = outputs.get(0);
-		matResult = postProcess(matResult, sizeDnnInput);
-
-		 // Decode detection
-        double scaleOrgW = aMatInput.width() / sizeDnnInput.width;
-        double scaleOrgH = aMatInput.height() / sizeDnnInput.height;
-        float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
-        float fNMSThreshold 		= DEF_NMS_THRESHOLD;
-        
-        List<Rect2d> outputBoxes 		= new ArrayList<>();
-        List<Float> outputConfidences 	= new ArrayList<>();
-        List<Integer> outputClassIds 	= new ArrayList<>();
-        //
-        decodePredictions(matResult, 
-        		scaleOrgW, scaleOrgH,  
-        		outputBoxes, outputConfidences, outputClassIds, 
-        		fConfidenceThreshold);
-        //
-        if(outputBoxes.size()>0)
-        {
-	        // Apply NMS
-	        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
-
-	        // Calculate bounding boxes
-	        DetectedObj objs = new DetectedObj();
-	        for (int idx : indices) {
-	        	
-	            Rect2d box 			= outputBoxes.get(idx);
-	            int classId 		= outputClassIds.get(idx);
-	            String classLabel 	= OBJ_CLASSESS.get(classId);
-	            Float confScore 	= outputConfidences.get(idx);
-	            
-	            objs.addDetectedObj(classId, classLabel, confScore, box);
-	        }
-	        
-	        // Draw bounding boxes
-			if(ANNOTATE_OUTPUT_IMG)
-	        {
-				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, objs);
-				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
-	        }
-	        
-	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
-			mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
-
-			//
-			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
-			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
-			//
-        }
-		return mapResult;
-	}
-	
 	protected void init()
 	{
 		NET_DNN = Dnn.readNetFromONNX( getModelFileName());
@@ -218,6 +107,7 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 		}
 	}
 	
+
 	private static Mat doInferencePreProcess(Mat aMatInput, Size sizeInput, 
 			boolean isApplyImgPadding, boolean isSwapRBChannel)
 	{
@@ -249,41 +139,126 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 			Imgproc.cvtColor(aMatInput, aMatInput, Imgproc.COLOR_BGR2RGB);
 		}
 		
+		/////////
+		// Convert to float and normalize (example values)
+		//aMatInput.convertTo(aMatInput, CvType.CV_32F, 1.0 / 255, 0); // Normalize to [0,1]
+
+		// Subtract mean and divide by standard deviation (example values)
+		//Core.subtract(aMatInput, new Scalar(0.485, 0.456, 0.406), aMatInput);
+		//Core.divide(aMatInput, new Scalar(0.229, 0.224, 0.225), aMatInput);
+		////////
 		
-		return Dnn.blobFromImage(aMatInput, 1, sizeInput, Scalar.all(0), true, false);		
+		
+		return Dnn.blobFromImage(aMatInput, 1.0 / 255.0, sizeInput, Scalar.all(0), true, false);		
+	}
+
+	/**
+	 *  ONNX Model = https://github.com/Pukei-Pukei/ViTPose-ONNX/tree/main
+	 *             = https://huggingface.co/JunkyByte/easy_ViTPose/tree/main/onnx/coco
+	 *  
+	 *  Processing Reference
+	 *  - https://github.com/Pukei-Pukei/ViTPose-ONNX/blob/main/utils/vitpose_util.py
+	 */
+	
+	@Override
+	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		List<Mat> outputs 	= null;
+		Mat matInputImg 	= null;
+		Mat matDnnImg 		= null;
+		try {
+			if(NET_DNN==null)
+	        {
+				init();
+	        }
+			
+			// Prepare input
+			matInputImg = aMatInput.clone();					
+			Size sizeDnnInput = DEF_INPUT_SIZE;
+			
+			matDnnImg = doInferencePreProcess(matInputImg, sizeDnnInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
+			NET_DNN.setInput(matDnnImg);
+
+	        // Run inference
+			outputs = new ArrayList<>();
+			NET_DNN.forward(outputs, NET_DNN.getUnconnectedOutLayersNames());
+
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} 
+		finally
+		{
+			if(matDnnImg!=null)
+				matDnnImg.release();
+		}
+			
+		return outputs;
+	}
+	
+	@Override
+	public Map<String,Object> parseDetections(
+			List<Mat> aInferenceOutputMat, 
+			Mat aMatInput, JSONObject aCustomThresholdJson)
+	{
+		Map<String, Object> mapResult = new HashMap<String, Object>();
+		List<Mat> outputs = aInferenceOutputMat;
+		
+		Size sizeDnnInput = DEF_INPUT_SIZE;
+		
+		// Process output
+        Mat matResult = outputs.get(0);
+		matResult = postProcess(matResult, sizeDnnInput);
+
+		 // Decode detection
+        double scaleOrgW = aMatInput.width() / sizeDnnInput.width;
+        double scaleOrgH = aMatInput.height() / sizeDnnInput.height;
+        float fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
+        float fNMSThreshold 		= DEF_NMS_THRESHOLD;
+        
+        List<DetectedObj> outputKeypoints 	= new ArrayList<>();
+        //
+        decodePredictions(matResult, 
+        		scaleOrgW, scaleOrgH,  
+        		outputKeypoints, 
+        		fConfidenceThreshold);
+        //
+        if(outputKeypoints.size()>0)
+        {
+	        // Calculate bounding boxes
+        	FrameDetectedObj frameObjs = new FrameDetectedObj();
+	        for (DetectedObj obj : outputKeypoints) {
+	            frameObjs.addDetectedObj(obj);
+	        }
+	        
+	        // Draw bounding boxes
+			if(ANNOTATE_OUTPUT_IMG)
+	        {
+				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs);
+				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+	        }
+	        
+	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, frameObjs.toJson());
+			mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, outputKeypoints.size());
+
+			//
+			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
+			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
+			//
+        }
+		return mapResult;
 	}
 	
 	private static Mat postProcess(Mat matOutputDetections, Size sizeInput)
 	{
         return matOutputDetections;
     }
-	
-
-	
-	private static int[] applyNMS(List<Rect2d> aBoxesList, List<Float> aConfidencesList, float CONFIDENCE_THRESHOLD, float NMS_THRESHOLD)
-	{
-        MatOfInt indices = new MatOfInt();
-
-        if(aBoxesList.size()>0)
-        {
-	        // Apply Non-Maximum Suppression
-	        MatOfRect2d boxesMat = new MatOfRect2d();
-	        boxesMat.fromList(aBoxesList);
-	        
-	        MatOfFloat confidencesMat = new MatOfFloat();
-	        confidencesMat.fromList(aConfidencesList);
-	        
-	        Dnn.NMSBoxes(boxesMat, confidencesMat, CONFIDENCE_THRESHOLD, NMS_THRESHOLD, indices);
-        }
-        return indices.toArray();
-
-	}
 
 	private void decodePredictions(
 	        final Mat matResult, 
 	        final double aScaleW,
 	        final double aScaleH,
-	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
+	        List<DetectedObj> aDetectedObj,
 	        final float aConfidenceThreshold) {
 	    
 		Mat output = matResult;
@@ -302,17 +277,18 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
             Core.MinMaxLocResult minMaxLocResult = Core.minMaxLoc(heatmap);
             Point peak = minMaxLocResult.maxLoc;
 
-            double x = peak.x;
-            double y = peak.y;
+            double x = peak.x * aScaleW;
+            double y = peak.y * aScaleH;
             double confidence = minMaxLocResult.maxVal;
+            String label = OBJ_CLASSESS.get(i);
             
-            System.out.printf("Keypoint %d: x=%.2f, y=%.2f, confidence=%.2f%n", i, x, y, confidence);
+            DetectedObj obj = new DetectedObj(i, label, new Point(x,y), confidence);
+            aDetectedObj.add(obj);
+            
+            System.out.println(obj);
             
             if (confidence >= aConfidenceThreshold) {
-            	
-            	
             }
-
             
         }
 		

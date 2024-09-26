@@ -17,6 +17,7 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.FaceDetectorYN;
 
 import hl.objml2.common.DetectedObj;
+import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.ObjDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
@@ -89,7 +90,7 @@ public class YunetFaceDetector extends ObjDetectionBasePlugin {
 		Mat outputImg = aMatInput.clone();
         
 		
-		DetectedObj objs = new DetectedObj();
+		FrameDetectedObj frameObjs = new FrameDetectedObj();
         if(faces!=null)
         {
         	 
@@ -104,7 +105,8 @@ public class YunetFaceDetector extends ObjDetectionBasePlugin {
 	            Imgproc.rectangle(outputImg, r, new Scalar(0, 255, 0), 2);
 	            double confidence = faces.get(i, 14)[0];
 	           
-	            objs.addDetectedObj(0, "face", confidence, new Rect2d(r.x, r.y, r.width, r.height));
+	            DetectedObj obj = new DetectedObj(0, "face", new Rect2d(r.x, r.y, r.width, r.height), confidence);
+	            frameObjs.addDetectedObj(obj);
 	
 	            Point leftEye = new Point(faces.get(i, 4)[0], faces.get(i, 5)[0]);
 	            Point rightEye = new Point(faces.get(i, 6)[0], faces.get(i, 7)[0]);
@@ -129,7 +131,7 @@ public class YunetFaceDetector extends ObjDetectionBasePlugin {
         	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, outputImg.clone());
         }
         
-    	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
+    	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, frameObjs.toJson());
     	
     	
     	return mapResult;

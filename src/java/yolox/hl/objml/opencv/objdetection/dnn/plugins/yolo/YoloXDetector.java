@@ -21,6 +21,7 @@ import org.opencv.imgproc.Imgproc;
 
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.DetectedObjUtil;
+import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.ObjDetectionBasePlugin;
 
 
@@ -115,7 +116,7 @@ public class YoloXDetector extends ObjDetectionBasePlugin {
 	        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
 	        // Calculate bounding boxes
-	        DetectedObj objs = new DetectedObj();
+	        FrameDetectedObj objs = new FrameDetectedObj();
 	        for (int idx : indices) {
 	        	
 	            Rect2d box 			= outputBoxes.get(idx);
@@ -123,7 +124,8 @@ public class YoloXDetector extends ObjDetectionBasePlugin {
 	            String classLabel 	= OBJ_CLASSESS.get(classId);
 	            Float confScore 	= outputConfidences.get(idx);
 	            
-	            objs.addDetectedObj(classId, classLabel, confScore, box);
+	            DetectedObj obj = new DetectedObj(classId, classLabel, box, confScore);
+	            objs.addDetectedObj(obj);
 	        }
 	        
 	        // Draw bounding boxes

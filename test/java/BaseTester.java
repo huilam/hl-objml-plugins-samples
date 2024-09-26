@@ -7,6 +7,7 @@ import org.opencv.core.Mat;
 
 import hl.common.FileUtil;
 import hl.objml2.common.DetectedObj;
+import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.ObjDetectionBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
@@ -120,8 +121,8 @@ public class BaseTester {
 					JSONObject jsonDetection = (JSONObject) mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON);
 					if(jsonDetection!=null)
 					{
-						DetectedObj objs = new DetectedObj();
-						objs.addAll(jsonDetection);
+						FrameDetectedObj objs = new FrameDetectedObj();
+						objs.fromJson(jsonDetection);
 						//
 						System.out.println("     - ObjClass Names : "+String.join(",", objs.getObjClassNames()));
 						System.out.println("     - Total Detection : "+(outputTotalDetections==null?"(missing data)":outputTotalDetections));
