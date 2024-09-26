@@ -10,7 +10,6 @@ import org.json.JSONObject;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
-import org.opencv.core.Rect2d;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
@@ -234,7 +233,7 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 	        // Draw bounding boxes
 			if(ANNOTATE_OUTPUT_IMG)
 	        {
-				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs);
+				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
 				mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
 	        }
 	        
