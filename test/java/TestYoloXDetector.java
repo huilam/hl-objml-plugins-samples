@@ -7,7 +7,10 @@ public class TestYoloXDetector extends BaseTester {
 	{
 		ObjDetectionBasePlugin detector = new YoloXDetector();
 		detector.addObjClassOfInterest(new String[]{"person"});
-		detector.addObjClassOfInterest(new String[]{"truck", "car", "bus"});
-		new BaseTester().testDetector(detector);
+		//detector.addObjClassOfInterest(new String[]{"truck", "car", "bus"});
+		//
+		BaseTester test = new BaseTester();
+		test.setTestImageFolder("./test/images/bikes-ii");
+		test.testDetector(detector);
 	}
 }

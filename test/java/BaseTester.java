@@ -119,9 +119,12 @@ public class BaseTester {
 					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
 					
 					JSONObject jsonDetection = (JSONObject) mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON);
+					
+					
+					/**
 					if(jsonDetection!=null)
 					{
-						FrameDetectedObj objs = new FrameDetectedObj();
+						FrameDetectedObj objs = DetectedObjUtil.
 						objs.fromJson(jsonDetection);
 						//
 						System.out.println("     - ObjClass Names : "+String.join(",", objs.getObjClassNames()));
@@ -131,6 +134,9 @@ public class BaseTester {
 					{
 						System.out.println("     - Detection JSON : "+jsonDetection);
 					}
+					**/
+					
+					System.out.println("     - Total Detection : "+mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT));
 					
 					Mat matOutput = (Mat) mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT);
 					
