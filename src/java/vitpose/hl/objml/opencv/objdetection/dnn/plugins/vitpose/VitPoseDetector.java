@@ -259,8 +259,8 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 	    
 		Mat output = matResult;
 		
-		// Extract the heatmaps (output has shape [1, 17, 64, 48])
-        int numKeypoints = (int) output.size(1); // Number of keypoints (17)
+		// Extract the heatmaps (output has shape [1, 17 or 25, 64, 48])
+        int numKeypoints = (int) output.size(1); // Number of keypoints (17 / 25)
         int height = output.size(2); // Height of heatmaps (64)
         int width = output.size(3); // Width of heatmaps (48)
 
