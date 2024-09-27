@@ -39,7 +39,6 @@ public class COCOKP17Utils {
    			,6  //Right Shoulder
    			,8  //Right Elbow
    			,10 //Right Wrist
-   			
     	};
     	
     	protected static int[] COCO_KP17_LOWER_BODY = {

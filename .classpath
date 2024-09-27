@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/java/yunet_face"/>
+	<classpathentry kind="src" path="src/java/humanseg"/>
 	<classpathentry kind="src" path="src/java/ultraface"/>
 	<classpathentry kind="src" path="src/java/textdetection"/>
 	<classpathentry kind="src" path="src/java/vitpose"/>
@@ -18,6 +19,6 @@
 	<classpathentry kind="lib" path="lib/native"/>
 	<classpathentry kind="lib" path="lib/hl-common_jdk11_20240815-1518-33.jar"/>
 	<classpathentry kind="lib" path="lib/hl-opencv_jdk11_20240821-2217-44.jar"/>
-	<classpathentry kind="lib" path="lib/hl-objml-plugin-framework_jdk11_20240927-1415-29.jar"/>
+	<classpathentry kind="lib" path="lib/hl-objml-plugin-framework_jdk11_20240927-1831-33.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
