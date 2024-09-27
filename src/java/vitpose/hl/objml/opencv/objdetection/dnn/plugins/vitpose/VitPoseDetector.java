@@ -152,11 +152,8 @@ public class VitPoseDetector extends ObjDetectionBasePlugin {
 	}
 
 	/**
-	 *  ONNX Model = https://github.com/Pukei-Pukei/ViTPose-ONNX/tree/main
-	 *             = https://huggingface.co/JunkyByte/easy_ViTPose/tree/main/onnx/coco
-	 *  
-	 *  Processing Reference
-	 *  - https://github.com/Pukei-Pukei/ViTPose-ONNX/blob/main/utils/vitpose_util.py
+	 *  https://github.com/JunkyByte/easy_ViTPose
+	 *  https://huggingface.co/JunkyByte/easy_ViTPose/tree/main/onnx
 	 */
 	
 	@Override
