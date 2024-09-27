@@ -1,0 +1,43 @@
+<project name="vitpose" default="jar" basedir=".">
+	<property name="test" location="test"/>
+	<property name="src" location="src/java/${ant.project.name}"/>
+	<property name="build" location="build/${ant.project.name}"/>
+	<property name="lib" location="lib"/>
+	<property name="releases" location="releases"/>
+	
+	<tstamp>
+	    <format property="buildno" pattern="yyyyMMdd-HHmm-ss"/>
+	</tstamp>
+	
+	<target name="compile" depends="clean">
+		<mkdir dir="${build}"/>
+		<javac srcdir="${src}" destdir="${build}" debug="true" source="11" target="11" includeantruntime="false">
+			<classpath refid="compile.classpath"/>
+		</javac>
+	</target>
+		
+	<target name="jar" depends="compile">
+		<delete dir="${build}">
+			<include name="**/hl-objml-plugin_${ant.project.name}_**.jar"/>
+		</delete>
+				
+		<copydir src="${src}" dest="${build}">
+			<exclude name="**/*.java"/>
+		</copydir>
+		<jar jarfile="${build}/hl-objml-plugin_${ant.project.name}_jdk11_${buildno}.jar" basedir="${build}">
+			<include name="**/*.*"/>
+			<include name="version/${ant.project.name}_${buildno}"/>
+		</jar>
+	</target>
+	
+	<target name="clean">
+		<delete dir="${build}"/>
+		<delete dir="${releases}"/>
+	</target>
+	
+	<path id="compile.classpath">
+		<fileset dir="${lib}">
+			<include name="*.jar" />
+		</fileset>
+	</path>
+</project>
