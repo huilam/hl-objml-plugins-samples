@@ -11,10 +11,10 @@ import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.dnn_superres.DnnSuperResImpl;
 
-import hl.objml2.plugin.ObjDetectionBasePlugin;
+import hl.objml2.plugin.ObjDetBasePlugin;
 
 
-public class Upscale extends ObjDetectionBasePlugin {
+public class Upscale extends ObjDetBasePlugin {
 	
 	private DnnSuperResImpl superres = null;
 	private Pattern pattModelNameNScale = Pattern.compile("([A-Z][A-Z,a-z]+)_x([2,3,4])\\.pb");
@@ -74,11 +74,11 @@ public class Upscale extends ObjDetectionBasePlugin {
 		Mat matOutput = aInferenceOutputMat.get(0);
 		if(matOutput!=null)
 		{
-			mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
-			mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, 1);
+			mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
+			mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT, 1);
 			//
-			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, -1);
-			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, -1);
+			mapResult.put(ObjDetBasePlugin._KEY_THRESHOLD_DETECTION, -1);
+			mapResult.put(ObjDetBasePlugin._KEY_THRESHOLD_NMS, -1);
 		}
 		
 		return mapResult;

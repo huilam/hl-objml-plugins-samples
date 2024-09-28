@@ -6,9 +6,8 @@ import org.json.JSONObject;
 import org.opencv.core.Mat;
 
 import hl.common.FileUtil;
-import hl.objml2.common.DetectedObj;
-import hl.objml2.common.FrameDetectedObj;
-import hl.objml2.plugin.ObjDetectionBasePlugin;
+import hl.objml2.plugin.IObjDetectionPlugin;
+import hl.objml2.plugin.ObjDetBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
 public class BaseTester {
@@ -58,7 +57,7 @@ public class BaseTester {
 		return null;
 	}
 	
-	public void testDetector(ObjDetectionBasePlugin aDetector)
+	public void testDetector(IObjDetectionPlugin aDetector)
 	{
 		OpenCvUtil.initOpenCV();
 		
@@ -100,17 +99,17 @@ public class BaseTester {
 				System.out.println();
 				System.out.print(" "+(i++)+". Perform test on "+fImg.getName()+" ... ");
 				
-				Mat matImg = ObjDetectionBasePlugin.getCvMatFromFile(fImg);
+				Mat matImg = ObjDetBasePlugin.getCvMatFromFile(fImg);
 				
 				long lInferenceStart = System.currentTimeMillis();
-				Map<String, Object> mapResult = aDetector.detect(matImg, null);
+				Map<String, Object> mapResult = ((ObjDetBasePlugin) aDetector).detect(matImg, null);
 				long lInferenceEnd = System.currentTimeMillis();
 				
 				if(mapResult!=null)
 				{
 					long lInferenceMs =  lInferenceEnd-lInferenceStart;
 					
-					Integer outputTotalDetections = (Integer) mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT);
+					Integer outputTotalDetections = (Integer) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT);
 					
 					
 					System.out.println();
@@ -118,7 +117,7 @@ public class BaseTester {
 					System.out.println("     - Inference Input Size : "+matImg.size().toString());
 					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
 					
-					JSONObject jsonDetection = (JSONObject) mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON);
+					JSONObject jsonDetection = (JSONObject) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_DETECTION_JSON);
 					
 					
 					/**
@@ -136,9 +135,9 @@ public class BaseTester {
 					}
 					**/
 					
-					System.out.println("     - Total Detection : "+mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT));
+					System.out.println("     - Total Detection : "+mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT));
 					
-					Mat matOutput = (Mat) mapResult.get(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT);
+					Mat matOutput = (Mat) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_ANNOTATED_MAT);
 					
 					if(matOutput!=null && !matOutput.empty() && outputTotalDetections>0)
 					{

@@ -18,10 +18,10 @@ import org.opencv.objdetect.FaceDetectorYN;
 
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.FrameDetectedObj;
-import hl.objml2.plugin.ObjDetectionBasePlugin;
+import hl.objml2.plugin.ObjDetBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
-public class YunetFaceDetector extends ObjDetectionBasePlugin {
+public class YunetFaceDetector extends ObjDetBasePlugin {
 
 	private FaceDetectorYN faceDetectorYN = null;
 	
@@ -123,15 +123,15 @@ public class YunetFaceDetector extends ObjDetectionBasePlugin {
 	            Imgproc.circle(outputImg, rightMouth, 2, new Scalar(0, 255, 255), 2);
 	        }
         
-        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, faces.height());
+        	mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT, faces.height());
         }
         
         if(outputImg!=null)
         {
-        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, outputImg.clone());
+        	mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, outputImg.clone());
         }
         
-    	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_DETECTION_JSON, frameObjs.toJson());
+    	mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_DETECTION_JSON, frameObjs.toJson());
     	
     	
     	return mapResult;

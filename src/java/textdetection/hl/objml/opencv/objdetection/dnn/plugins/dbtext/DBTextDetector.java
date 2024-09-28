@@ -14,18 +14,14 @@ import org.opencv.core.Size;
 import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextDetectionModel_DB;
 import org.opencv.imgproc.Imgproc;
-import hl.objml2.plugin.ObjDetectionBasePlugin;
+
+import hl.objml2.plugin.ObjDetBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
 
-public class DBTextDetector extends ObjDetectionBasePlugin {
+public class DBTextDetector extends ObjDetBasePlugin {
 
 	private TextDetectionModel textDetector = null;
-	
-	@Override
-	public boolean isPluginOK() {
-		return super.isPluginOK(getClass());
-	}
 	
 
 	/**
@@ -80,16 +76,16 @@ public class DBTextDetector extends ObjDetectionBasePlugin {
 		        }
 	        }
 	        
-	        mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_TOTAL_COUNT, detections.size());
+	        mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT, detections.size());
 
 	        if(matOutput!=null)
 	        {
-	        	mapResult.put(ObjDetectionBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput.clone());
+	        	mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput.clone());
 	        }
 	        
 	        //
-			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_DETECTION, -1);
-			mapResult.put(ObjDetectionBasePlugin._KEY_THRESHOLD_NMS, -1);
+			mapResult.put(ObjDetBasePlugin._KEY_THRESHOLD_DETECTION, -1);
+			mapResult.put(ObjDetBasePlugin._KEY_THRESHOLD_NMS, -1);
 	        
 		}finally
 		{
