@@ -15,6 +15,7 @@ import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextDetectionModel_DB;
 import org.opencv.imgproc.Imgproc;
 
+import hl.objml2.common.FrameDetectionMeta;
 import hl.objml2.plugin.ObjDetBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
@@ -75,17 +76,20 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		            Imgproc.polylines(matOutput, List.of(contour), true, new Scalar(0, 255, 0), 2);
 		        }
 	        }
-	        
-	        mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT, detections.size());
 
+			//
 	        if(matOutput!=null)
 	        {
-	        	mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput.clone());
+				mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutput.clone());
+				//
+				FrameDetectionMeta meta = new FrameDetectionMeta();
+				meta.setConfidence_threshold(DEF_CONFIDENCE_THRESHOLD);
+				meta.setNms_threshold(DEF_NMS_THRESHOLD);
+				meta.setObjml_model_name(getModelFileName());
+				meta.setObjml_plugin_name(getPluginName());
+				mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTION_META, meta);
+				//
 	        }
-	        
-	        //
-			mapResult.put(ObjDetBasePlugin._KEY_THRESHOLD_DETECTION, -1);
-			mapResult.put(ObjDetBasePlugin._KEY_THRESHOLD_NMS, -1);
 	        
 		}finally
 		{

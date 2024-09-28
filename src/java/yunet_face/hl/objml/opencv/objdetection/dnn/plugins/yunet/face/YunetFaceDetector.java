@@ -17,12 +17,15 @@ import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.FaceDetectorYN;
 
 import hl.objml2.common.DetectedObj;
+import hl.objml2.common.DetectedObjUtil;
 import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.ObjDetBasePlugin;
+import hl.objml2.plugin.ObjDetDnnBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
 public class YunetFaceDetector extends ObjDetBasePlugin {
 
+	private static boolean ANNOTATE_OUTPUT_IMG 		= true;
 	private FaceDetectorYN faceDetectorYN = null;
 	
 	@Override
@@ -90,9 +93,9 @@ public class YunetFaceDetector extends ObjDetBasePlugin {
 		Mat outputImg = aMatInput.clone();
         
 		
-		FrameDetectedObj frameObjs = new FrameDetectedObj();
         if(faces!=null)
         {
+    		FrameDetectedObj frameObjs = new FrameDetectedObj();
         	 
 	        for (int i = 0; i < faces.height(); i++)
 	        {
@@ -107,32 +110,37 @@ public class YunetFaceDetector extends ObjDetBasePlugin {
 	           
 	            DetectedObj obj = new DetectedObj(0, "face", new Rect2d(r.x, r.y, r.width, r.height), confidence);
 	            frameObjs.addDetectedObj(obj);
-	
-	            Point leftEye = new Point(faces.get(i, 4)[0], faces.get(i, 5)[0]);
-	            Point rightEye = new Point(faces.get(i, 6)[0], faces.get(i, 7)[0]);
-	            Imgproc.circle(outputImg, leftEye, 2, new Scalar(255, 0, 0), 2); //Blue
-	            Imgproc.circle(outputImg, rightEye, 2, new Scalar(0, 0, 255), 2); //Red
 	            
-	            Point nose = new Point(faces.get(i, 8)[0], faces.get(i, 9)[0]);
-	            Imgproc.circle(outputImg, nose, 2, new Scalar(0, 255, 0), 2);
-	            
-	            
-	            Point leftMouth = new Point(faces.get(i, 10)[0], faces.get(i, 11)[0]);
-	            Point rightMouth = new Point(faces.get(i, 12)[0], faces.get(i, 13)[0]);
-	            Imgproc.circle(outputImg, leftMouth, 2, new Scalar(255, 0, 255), 2);
-	            Imgproc.circle(outputImg, rightMouth, 2, new Scalar(0, 255, 255), 2);
+	            if(ANNOTATE_OUTPUT_IMG)
+	            {
+		            Point leftEye = new Point(faces.get(i, 4)[0], faces.get(i, 5)[0]);
+		            Point rightEye = new Point(faces.get(i, 6)[0], faces.get(i, 7)[0]);
+		            Imgproc.circle(outputImg, leftEye, 2, new Scalar(255, 0, 0), 2); //Blue
+		            Imgproc.circle(outputImg, rightEye, 2, new Scalar(0, 0, 255), 2); //Red
+		            
+		            Point nose = new Point(faces.get(i, 8)[0], faces.get(i, 9)[0]);
+		            Imgproc.circle(outputImg, nose, 2, new Scalar(0, 255, 0), 2);
+		            
+		            Point leftMouth = new Point(faces.get(i, 10)[0], faces.get(i, 11)[0]);
+		            Point rightMouth = new Point(faces.get(i, 12)[0], faces.get(i, 13)[0]);
+		            Imgproc.circle(outputImg, leftMouth, 2, new Scalar(255, 0, 255), 2);
+		            Imgproc.circle(outputImg, rightMouth, 2, new Scalar(0, 255, 255), 2);
+	            }
 	        }
-        
-        	mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT, faces.height());
+	        
+	        if(frameObjs.getTotalDetectionCount()>0)
+	        {
+				if(ANNOTATE_OUTPUT_IMG)
+		        {
+					Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
+					mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
+		        }
+		        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
+	        }
+			//
+
         }
         
-        if(outputImg!=null)
-        {
-        	mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, outputImg.clone());
-        }
-        
-    	mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_DETECTION_JSON, frameObjs.toJson());
-    	
     	
     	return mapResult;
 	}

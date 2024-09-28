@@ -11,6 +11,9 @@ import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.dnn_superres.DnnSuperResImpl;
 
+import hl.objml2.common.DetectedObj;
+import hl.objml2.common.FrameDetectedObj;
+import hl.objml2.common.FrameDetectionMeta;
 import hl.objml2.plugin.ObjDetBasePlugin;
 
 
@@ -18,13 +21,7 @@ public class Upscale extends ObjDetBasePlugin {
 	
 	private DnnSuperResImpl superres = null;
 	private Pattern pattModelNameNScale = Pattern.compile("([A-Z][A-Z,a-z]+)_x([2,3,4])\\.pb");
-	
-	@Override
-	public boolean isPluginOK() {
-		return super.isPluginOK(getClass());
-	}
-	
-	
+
 	@Override
 	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
 	{
@@ -42,8 +39,6 @@ public class Upscale extends ObjDetBasePlugin {
 	    	{
 	    		String sAlgoName = m.group(1); //FSRCNN
 	    		String sScale = m.group(2); //4
-
-//System.out.println(_model_filename+" = "+sAlgoName.toLowerCase()+" x"+sScale);
 
  				if(sAlgoName==null || sAlgoName.trim().length()==0 ||
  					sScale==null || sScale.trim().length()==0)
@@ -74,11 +69,16 @@ public class Upscale extends ObjDetBasePlugin {
 		Mat matOutput = aInferenceOutputMat.get(0);
 		if(matOutput!=null)
 		{
-			mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutput);
-			mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT, 1);
 			//
-			mapResult.put(ObjDetBasePlugin._KEY_THRESHOLD_DETECTION, -1);
-			mapResult.put(ObjDetBasePlugin._KEY_THRESHOLD_NMS, -1);
+			mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutput);
+			//
+			FrameDetectionMeta meta = new FrameDetectionMeta();
+			meta.setConfidence_threshold(DEF_CONFIDENCE_THRESHOLD);
+			meta.setNms_threshold(DEF_NMS_THRESHOLD);
+			meta.setObjml_model_name(getModelFileName());
+			meta.setObjml_plugin_name(getPluginName());
+			mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTION_META, meta);
+			//
 		}
 		
 		return mapResult;

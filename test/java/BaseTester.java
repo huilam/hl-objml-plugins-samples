@@ -2,10 +2,11 @@ import java.io.File;
 import java.util.Map;
 import java.util.Properties;
 
-import org.json.JSONObject;
 import org.opencv.core.Mat;
 
 import hl.common.FileUtil;
+import hl.objml2.common.FrameDetectedObj;
+import hl.objml2.common.FrameDetectionMeta;
 import hl.objml2.plugin.IObjDetectionPlugin;
 import hl.objml2.plugin.ObjDetBasePlugin;
 import hl.opencv.util.OpenCvUtil;
@@ -111,37 +112,34 @@ public class BaseTester {
 				{
 					long lInferenceMs =  lInferenceEnd-lInferenceStart;
 					
-					Integer outputTotalDetections = (Integer) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT);
-					
 					
 					System.out.println();
 					System.out.println("     - Inference Model File : "+new File(aDetector.getPluginMLModelFileName()).getName());
 					System.out.println("     - Inference Input Size : "+matImg.size().toString());
 					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
-					
-					JSONObject jsonDetection = (JSONObject) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_DETECTION_JSON);
-					
-					
-					/**
-					if(jsonDetection!=null)
+			
+					FrameDetectedObj frameObjs 		= (FrameDetectedObj) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS);
+					if(frameObjs!=null)
 					{
-						FrameDetectedObj objs = DetectedObjUtil.
-						objs.fromJson(jsonDetection);
 						//
-						System.out.println("     - ObjClass Names : "+String.join(",", objs.getObjClassNames()));
-						System.out.println("     - Total Detection : "+(outputTotalDetections==null?"(missing data)":outputTotalDetections));
+						System.out.println("     - ObjClass Names : "+String.join(",", frameObjs.getObjClassNames()));
+						System.out.println("     - Total Detection : "+frameObjs.getTotalDetectionCount());
 					}
 					else
 					{
-						System.out.println("     - Detection JSON : "+jsonDetection);
+						FrameDetectionMeta meta = (FrameDetectionMeta) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTION_META);
+						if(meta!=null)
+						{
+							System.out.println("     - Total Detection : 1");
+						}
+						else
+						{
+							System.out.println("     - Total Detection : (No Detection Data)");
+						}
 					}
-					**/
-					
-					System.out.println("     - Total Detection : "+mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_TOTAL_COUNT));
-					
-					Mat matOutput = (Mat) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_ANNOTATED_MAT);
-					
-					if(matOutput!=null && !matOutput.empty() && outputTotalDetections>0)
+		
+					Mat matOutput = (Mat) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG);
+					if(matOutput!=null && !matOutput.empty())
 					{
 						String savedFileName = 
 								saveImage(aDetector.getPluginName(), 

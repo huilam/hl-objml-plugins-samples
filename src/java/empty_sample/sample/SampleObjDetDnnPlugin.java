@@ -38,7 +38,6 @@ public class SampleObjDetDnnPlugin extends ObjDetDnnBasePlugin {
 		{
 			System.out.println(i+" = "+aInferenceOutputMat.get(i));
 		}
-		mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_TOTAL_COUNT, mapResult.size());
 		return mapResult;
 	}
 	

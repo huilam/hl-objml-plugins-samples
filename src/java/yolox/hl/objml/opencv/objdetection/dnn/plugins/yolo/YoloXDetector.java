@@ -98,7 +98,7 @@ public class YoloXDetector extends ObjDetDnnBasePlugin {
 	        int[] indices = applyNMS(outputBoxes, outputConfidences, fConfidenceThreshold, fNMSThreshold);
 
 	        // Calculate bounding boxes
-	        FrameDetectedObj objs = new FrameDetectedObj();
+	        FrameDetectedObj frameObjs = new FrameDetectedObj();
 	        for (int idx : indices) {
 	        	
 	            Rect2d box 			= outputBoxes.get(idx);
@@ -107,22 +107,16 @@ public class YoloXDetector extends ObjDetDnnBasePlugin {
 	            Float confScore 	= outputConfidences.get(idx);
 	            
 	            DetectedObj obj = new DetectedObj(classId, classLabel, box, confScore);
-	            objs.addDetectedObj(obj);
+	            frameObjs.addDetectedObj(obj);
 	        }
 	        
 	        // Draw bounding boxes
 			if(ANNOTATE_OUTPUT_IMG)
 	        {
-				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, objs);
-				mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
+				mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
 	        }
-	        
-	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_DETECTION_JSON, objs.toJson());
-			mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_TOTAL_COUNT, indices.length);
-
-			//
-			mapResult.put(ObjDetDnnBasePlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
-			mapResult.put(ObjDetDnnBasePlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
+	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
 			//
         }
         

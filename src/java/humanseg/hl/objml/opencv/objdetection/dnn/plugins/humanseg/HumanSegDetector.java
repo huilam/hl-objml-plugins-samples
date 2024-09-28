@@ -26,56 +26,10 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
     private static boolean APPLY_IMG_PADDING 		= false;
     private static boolean ANNOTATE_OUTPUT_IMG 		= true;
 
-
-	private static Mat doInferencePreProcess(Mat aMatInput, Size sizeInput, 
-			boolean isApplyImgPadding, boolean isSwapRBChannel)
-	{
-		if(isApplyImgPadding)
-		{
-			Mat matPaddedImg = null;
-			Mat matROI = null;
-			try {
-				
-				int iMaxPixels = Math.max(aMatInput.width(), aMatInput.height());
-				matPaddedImg = new Mat(new Size(iMaxPixels,iMaxPixels), aMatInput.type(), Scalar.all(0));
-				matROI = matPaddedImg.submat(0,aMatInput.rows(),0,aMatInput.cols());
-				aMatInput.copyTo(matROI);
-				
-				aMatInput = matPaddedImg.clone();
-			}
-			finally
-			{
-				if(matPaddedImg!=null)
-					matPaddedImg.release();
-				if(matROI!=null)
-					matROI.release();
-			}
-		}
-		
-		// Convert from BGR to RGB
-		if(isSwapRBChannel)
-		{
-			Imgproc.cvtColor(aMatInput, aMatInput, Imgproc.COLOR_BGR2RGB);
-		}
-		
-		/////////
-		// Convert to float and normalize (example values)
-		//aMatInput.convertTo(aMatInput, CvType.CV_32F, 1.0 / 255, 0); // Normalize to [0,1]
-
-		// Subtract mean and divide by standard deviation (example values)
-		//Core.subtract(aMatInput, new Scalar(0.485, 0.456, 0.406), aMatInput);
-		//Core.divide(aMatInput, new Scalar(0.229, 0.224, 0.225), aMatInput);
-		////////
-		
-		
-		return Dnn.blobFromImage(aMatInput, 1.0 / 255.0, sizeInput, Scalar.all(0), true, false);		
-	}
-
 	/**
 	 *  https://github.com/JunkyByte/easy_ViTPose
 	 *  https://huggingface.co/JunkyByte/easy_ViTPose/tree/main/onnx
 	 */
-	
 	@Override
 	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
 	{
@@ -120,16 +74,10 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 		
 		List<Mat> outputs = aInferenceOutputMat;
 		
-		Size sizeDnnInput = DEF_INPUT_SIZE;
 		
 		// Process output
         Mat matResult = outputs.get(0);
-		matResult = postProcess(matResult, sizeDnnInput);
-
-		 // Decode detection
         double fConfidenceThreshold 	= super.DEF_CONFIDENCE_THRESHOLD;
-        double fNMSThreshold 			= super.DEF_NMS_THRESHOLD;
-        
         List<DetectedObj> outputKeypoints 	= new ArrayList<>();
         //
         decodePredictions(matResult, 
@@ -149,24 +97,47 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 			if(ANNOTATE_OUTPUT_IMG)
 	        {
 				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
-				mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+				mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
 	        }
-	        
-	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_DETECTION_JSON, frameObjs.toJson());
-			mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_TOTAL_COUNT, outputKeypoints.size());
-
-			//
-			mapResult.put(ObjDetDnnBasePlugin._KEY_THRESHOLD_DETECTION, fConfidenceThreshold);
-			mapResult.put(ObjDetDnnBasePlugin._KEY_THRESHOLD_NMS, fNMSThreshold);
+	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
 			//
         }
 		return mapResult;
 	}
 	
-	private static Mat postProcess(Mat matOutputDetections, Size sizeInput)
+	private static Mat doInferencePreProcess(Mat aMatInput, Size sizeInput, 
+			boolean isApplyImgPadding, boolean isSwapRBChannel)
 	{
-        return matOutputDetections;
-    }
+		if(isApplyImgPadding)
+		{
+			Mat matPaddedImg = null;
+			Mat matROI = null;
+			try {
+				
+				int iMaxPixels = Math.max(aMatInput.width(), aMatInput.height());
+				matPaddedImg = new Mat(new Size(iMaxPixels,iMaxPixels), aMatInput.type(), Scalar.all(0));
+				matROI = matPaddedImg.submat(0,aMatInput.rows(),0,aMatInput.cols());
+				aMatInput.copyTo(matROI);
+				
+				aMatInput = matPaddedImg.clone();
+			}
+			finally
+			{
+				if(matPaddedImg!=null)
+					matPaddedImg.release();
+				if(matROI!=null)
+					matROI.release();
+			}
+		}
+		
+		// Convert from BGR to RGB
+		if(isSwapRBChannel)
+		{
+			Imgproc.cvtColor(aMatInput, aMatInput, Imgproc.COLOR_BGR2RGB);
+		}
+		
+		return Dnn.blobFromImage(aMatInput, 1.0 / 255.0, sizeInput, Scalar.all(0), true, false);		
+	}
 
 	private void decodePredictions(
 	        final Mat matResult, 
@@ -174,7 +145,6 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 	        List<DetectedObj> aDetectedObj,
 	        final double aConfidenceThreshold) {
 	    
-		System.out.println("matResult="+matResult);
 		int width 	= matResult.size(2);
 		int height 	= matResult.size(3);
 		
@@ -183,24 +153,16 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 		
 		// Extract the second channel (foreground probabilities)
 		Mat foreground = reshapedMat.rowRange(width, 2 * height);
-		
 		Mat segOutput = foreground.reshape(1, height); 
 		
 		Mat binaryMask = new Mat();
 		Imgproc.threshold(segOutput, binaryMask, aConfidenceThreshold, 1, Imgproc.THRESH_BINARY); // Threshold at 0.5
 		binaryMask.convertTo(binaryMask, CvType.CV_8UC1, 255);
-		
+	
 		OpenCvUtil.resize(binaryMask, (int)aMatSize.width, (int)aMatSize.height, false);
-		
-		System.out.println("width="+width);
-		System.out.println("height="+width);
-		System.out.println("binaryMask="+segOutput);
-		System.out.println();
-		
 		
 		List<MatOfPoint> listContours = new ArrayList<>();
 		Imgproc.findContours(binaryMask, listContours, new Mat(), Imgproc.RETR_LIST, Imgproc.CHAIN_APPROX_SIMPLE);
-		
 		if(listContours.size()>0)
 		{
 			for(MatOfPoint mp: listContours)
@@ -209,8 +171,5 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 				aDetectedObj.add(obj);
 			}
 		}
-		
-		
-		
 	}
 }

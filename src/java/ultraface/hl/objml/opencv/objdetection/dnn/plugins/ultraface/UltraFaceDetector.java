@@ -107,18 +107,11 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 		        // Draw bounding boxes
 				if(ANNOTATE_OUTPUT_IMG)
 		        {
-					Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs);
-					mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_ANNOTATED_MAT, matOutputImg);
+					Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
+					mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
 		        }
-
-				//
-				mapResult.put(ObjDetDnnBasePlugin._KEY_THRESHOLD_DETECTION, dConfThreshold);
-				mapResult.put(ObjDetDnnBasePlugin._KEY_THRESHOLD_NMS, dNMSThreshold);
-				//
-	        }
-	        
-	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_DETECTION_JSON, frameObjs.toJson());
-			mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_TOTAL_COUNT, outputBoxes.size());
+		        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
+		     }
 	        
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
