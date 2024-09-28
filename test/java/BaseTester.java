@@ -29,6 +29,8 @@ public class BaseTester {
 		{
 			return FileUtil.getFilesWithExtensions(folderImages, 
 					new String[]{
+							".bmp",
+							".jpeg",
 							".jpg",
 							".png"});
 		}
