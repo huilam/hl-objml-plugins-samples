@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.json.JSONObject;
 import org.opencv.core.Mat;
@@ -40,5 +41,12 @@ public class SampleObjDetDnnPlugin extends ObjDetDnnBasePlugin {
 		}
 		return mapResult;
 	}
+	
+	@Override
+	public Properties prePropInit(Properties aProps) 
+	{
+		return aProps;
+	}
+
 	
 }

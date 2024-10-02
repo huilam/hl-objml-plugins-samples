@@ -3,12 +3,15 @@ import java.util.Map;
 import java.util.Properties;
 
 import org.opencv.core.Mat;
+import org.opencv.dnn.Layer;
+import org.opencv.dnn.Net;
 
 import hl.common.FileUtil;
 import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.common.FrameDetectionMeta;
 import hl.objml2.plugin.IObjDetectionPlugin;
 import hl.objml2.plugin.ObjDetBasePlugin;
+import hl.objml2.plugin.ObjDetDnnBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
 public class BaseTester {
@@ -105,7 +108,7 @@ public class BaseTester {
 				Mat matImg = ObjDetBasePlugin.getCvMatFromFile(fImg);
 				
 				long lInferenceStart = System.currentTimeMillis();
-				Map<String, Object> mapResult = ((ObjDetBasePlugin) aDetector).detect(matImg, null);
+				Map<String, Object> mapResult = ((ObjDetDnnBasePlugin) aDetector).detect(matImg, null);
 				long lInferenceEnd = System.currentTimeMillis();
 				
 				if(mapResult!=null)
@@ -117,6 +120,16 @@ public class BaseTester {
 					System.out.println("     - Inference Model File : "+new File(aDetector.getPluginMLModelFileName()).getName());
 					System.out.println("     - Inference Input Size : "+matImg.size().toString());
 					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
+					
+					
+					if(aDetector instanceof ObjDetDnnBasePlugin)
+					{
+						ObjDetDnnBasePlugin dnnDetector = ((ObjDetDnnBasePlugin) aDetector);
+						
+						System.out.println("     - Inference Backend    : "+dnnDetector.getDnnBackend());
+						System.out.println("     - Inference Target     : "+dnnDetector.getDnnTarget());
+					}
+					
 			
 					FrameDetectedObj frameObjs 		= (FrameDetectedObj) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS);
 					if(frameObjs!=null)
