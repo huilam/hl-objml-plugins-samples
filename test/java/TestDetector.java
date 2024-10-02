@@ -8,6 +8,8 @@ public class TestDetector extends BaseTester {
 		BaseTester test = new BaseTester();
 		test.setTestImageFolder("./test/images/coco");
 		//
+		
+		//
 		test.testDetector(new SampleObjDetDnnPlugin());
 	}
 }

@@ -10,7 +10,7 @@ public class TestYoloXDetector extends BaseTester {
 		//detector.addObjClassOfInterest(new String[]{"truck", "car", "bus"});
 		//
 		BaseTester test = new BaseTester();
-		test.setTestImageFolder("./test/images/faces");
+		test.setTestImageFolder("./test/images/coco");
 		test.testDetector(detector);
 	}
 }

@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
@@ -14,6 +13,7 @@ import org.opencv.core.Rect2d;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
+import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml2.common.DetectedObj;
@@ -39,7 +39,7 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 	 *  
 	 */
 	@Override
-	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
 		Mat matDnnImg 		= null;
 		List<Mat> outputs 	= null;
@@ -48,14 +48,14 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 			Size sizeInput 	= DEF_INPUT_SIZE;
 			matDnnImg = aMatInput.clone();					
 			matDnnImg 	= inferencePreProcess(matDnnImg, sizeInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
-			NET_DNN.setInput(matDnnImg);
+			aDnnNet.setInput(matDnnImg);
 			
 	        // Run the forward pass
 	        outputs = new ArrayList<>();
 	        List<String> outNames = new ArrayList<>();
 	        outNames.add("boxes");   // Name of the bounding boxes output
 	        outNames.add("scores");  // Name of the scores output
-	        NET_DNN.forward(outputs, outNames);
+	        aDnnNet.forward(outputs, outNames);
 		}
 		finally
 		{
@@ -66,9 +66,7 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(
-			List<Mat> aInferenceOutputMat, 
-			Mat aMatInput, JSONObject aCustomThresholdJson)
+	public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		try {

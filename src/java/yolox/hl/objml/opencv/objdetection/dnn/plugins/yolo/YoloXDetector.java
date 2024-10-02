@@ -15,6 +15,7 @@ import org.opencv.core.Rect2d;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
+import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml2.common.DetectedObj;
@@ -38,7 +39,7 @@ public class YoloXDetector extends ObjDetDnnBasePlugin {
 	 *  - https://github.com/Megvii-BaseDetection/YOLOX/blob/main/yolox/utils/demo_utils.py
 	 */
 	@Override
-	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+    public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
 		List<Mat> outputs = null;
 		Mat matInputImg = null;
@@ -48,11 +49,11 @@ public class YoloXDetector extends ObjDetDnnBasePlugin {
 			// Prepare input
 			matInputImg = aMatInput.clone();					
 			matDnnImg = preProcess(matInputImg, DEF_INPUT_SIZE, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
-			NET_DNN.setInput(matDnnImg);
+			aDnnNet.setInput(matDnnImg);
 
 	        // Run inference
 	        outputs = new ArrayList<>();
-	        NET_DNN.forward(outputs, NET_DNN.getUnconnectedOutLayersNames());
+	        aDnnNet.forward(outputs, aDnnNet.getUnconnectedOutLayersNames());
 		}
 		finally
 		{
@@ -67,9 +68,7 @@ public class YoloXDetector extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(
-			List<Mat> aInferenceOutputMat, 
-			Mat aMatInput, JSONObject aCustomThresholdJson)
+    public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		

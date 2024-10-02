@@ -5,9 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-
-import org.json.JSONObject;
 import org.opencv.core.Mat;
+import org.opencv.dnn.Net;
 
 import hl.objml2.plugin.ObjDetBasePlugin;
 
@@ -15,16 +14,14 @@ import hl.objml2.plugin.ObjDetBasePlugin;
 public class SampleObjDetPlugin extends ObjDetBasePlugin {
 	
 	@Override
-	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+    public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
 		List<Mat> listOutput = new ArrayList<>();
 		return listOutput;
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(
-			List<Mat> aInferenceOutputMat, 
-			Mat aMatInput, JSONObject aCustomThresholdJson)
+    public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		return mapResult;

@@ -5,14 +5,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
 import org.opencv.core.Rect2d;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
+import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.objdetect.FaceDetectorYN;
 
@@ -27,14 +25,9 @@ public class YunetFaceDetector extends ObjDetBasePlugin {
 
 	private static boolean ANNOTATE_OUTPUT_IMG 		= true;
 	private FaceDetectorYN faceDetectorYN = null;
-	
-	@Override
-	public boolean isPluginOK() {
-		return super.isPluginOK(getClass());
-	}
 
 	@Override
-	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
 		if(!isPluginOK() || aMatInput==null)
 			return null;
@@ -44,25 +37,24 @@ public class YunetFaceDetector extends ObjDetBasePlugin {
 		
 		
 		try {
+			
 	        srcImg 		= aMatInput.clone();
 	        OpenCvUtil.removeAlphaChannel(srcImg);
 	       
 	        File fileModel 	= new File(_model_filename);
 			
-	        // 0: default, 1: Halide, 2: Intel's Inference Engine, 3: OpenCV, 4: VKCOM, 5: CUDA
-			int backendId 			= 0; 
-			// 0: CPU, 1: OpenCL, 2: OpenCL FP16, 3: Myriad, 4: Vulkan, 5: FPGA, 6: CUDA, 7: CUDA FP16, 8: HDDL
-	        int targetId 			= 0; 
-	        float scoreThreshold 	= 0.9f;
-	        float nmsThreshold 		= 0.3f;
+			int backendId 			= getDnnBackend(); 
+	        int targetId 			= getDnnTarget(); 
 	        int topK 				= 5000;
 	                   
 	        if(faceDetectorYN==null)
 	        {        
 		        faceDetectorYN = FaceDetectorYN.create(
 		        		fileModel.getAbsolutePath(),"", 
-		        		new Size(320, 320),scoreThreshold, 
-		        		nmsThreshold, topK, backendId, targetId);
+		        		DEF_INPUT_SIZE, 
+		        		(float)DEF_CONFIDENCE_THRESHOLD, 
+		        		(float)DEF_NMS_THRESHOLD, 
+		        		topK, backendId, targetId);
 		     }
 	        
 	        faceDetectorYN.setInputSize(srcImg.size());
@@ -83,9 +75,7 @@ public class YunetFaceDetector extends ObjDetBasePlugin {
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(
-			List<Mat> aInferenceOutputMat, 
-			Mat aMatInput, JSONObject aCustomThresholdJson)
+	public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		Mat faces = aInferenceOutputMat.get(0);

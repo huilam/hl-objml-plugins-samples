@@ -5,13 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONObject;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
+import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml2.common.DetectedObj;
@@ -31,7 +31,7 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 	 *  https://huggingface.co/JunkyByte/easy_ViTPose/tree/main/onnx
 	 */
 	@Override
-	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
 		List<Mat> outputs 	= null;
 		Mat matInputImg 	= null;
@@ -43,11 +43,11 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 			Size sizeDnnInput = DEF_INPUT_SIZE;
 			
 			matDnnImg = doInferencePreProcess(matInputImg, sizeDnnInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
-			NET_DNN.setInput(matDnnImg);
+			aDnnNet.setInput(matDnnImg);
 
 	        // Run inference
 			outputs = new ArrayList<>();
-			NET_DNN.forward(outputs, NET_DNN.getUnconnectedOutLayersNames());
+			aDnnNet.forward(outputs, aDnnNet.getUnconnectedOutLayersNames());
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -63,9 +63,7 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(
-			List<Mat> aInferenceOutputMat, 
-			Mat aMatInput, JSONObject aCustomThresholdJson)
+	public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		

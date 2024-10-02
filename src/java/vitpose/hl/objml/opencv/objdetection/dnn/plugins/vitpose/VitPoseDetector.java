@@ -12,6 +12,7 @@ import org.opencv.core.Point;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Dnn;
+import org.opencv.dnn.Net;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml2.common.DetectedObj;
@@ -31,13 +32,14 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
 	 */
 	
 	@Override
-	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	
+    public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
 		List<Mat> outputs 	= null;
 		Mat matInputImg 	= null;
 		Mat matDnnImg 		= null;
 		try {
-			if(NET_DNN==null)
+			if(aDnnNet==null)
 	        {
 				init();
 	        }
@@ -47,11 +49,11 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
 			Size sizeDnnInput = DEF_INPUT_SIZE;
 			
 			matDnnImg = doInferencePreProcess(matInputImg, sizeDnnInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
-			NET_DNN.setInput(matDnnImg);
+			aDnnNet.setInput(matDnnImg);
 
 	        // Run inference
 			outputs = new ArrayList<>();
-			NET_DNN.forward(outputs, NET_DNN.getUnconnectedOutLayersNames());
+			aDnnNet.forward(outputs, aDnnNet.getUnconnectedOutLayersNames());
 
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
@@ -67,9 +69,7 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(
-			List<Mat> aInferenceOutputMat, 
-			Mat aMatInput, JSONObject aCustomThresholdJson)
+	public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		List<Mat> outputs = aInferenceOutputMat;

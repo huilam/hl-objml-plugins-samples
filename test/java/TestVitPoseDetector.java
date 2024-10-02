@@ -5,7 +5,7 @@ public class TestVitPoseDetector extends BaseTester {
 	public static void main(String[] args)
 	{
 		BaseTester test = new BaseTester();
-		test.setTestImageFolder("./test/images/bikes-ii");
+		test.setTestImageFolder("./test/images/faces");
 		test.testDetector(new VitPoseDetector());
 	}
 }

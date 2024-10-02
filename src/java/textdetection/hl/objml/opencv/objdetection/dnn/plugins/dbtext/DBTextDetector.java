@@ -6,11 +6,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.json.JSONObject;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
+import org.opencv.dnn.Net;
 import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextDetectionModel_DB;
 import org.opencv.imgproc.Imgproc;
@@ -22,7 +22,8 @@ import hl.opencv.util.OpenCvUtil;
 
 public class DBTextDetector extends ObjDetBasePlugin {
 
-	private TextDetectionModel textDetector = null;
+	private static boolean ANNOTATE_OUTPUT_IMG 	= true;
+	private TextDetectionModel textDetector 	= null;
 	
 
 	/**
@@ -30,7 +31,7 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	 **/
 	
 	@Override
-	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+    public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
 		File fileModel 	= new File(_model_filename);
                    
@@ -40,9 +41,7 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	    }
         
         // Set the input parameters
-        int inputWidth = 736;
-        int inputHeight = 736;
-        Size inputSize = new Size(inputWidth, inputHeight);
+        Size inputSize = getImageInputSize();
         Scalar mean = new Scalar(122.67891434, 116.66876762, 104.00698793);
         textDetector.setInputParams(1.0 / 255.0, inputSize, mean, true);
         
@@ -50,9 +49,7 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(
-			List<Mat> aInferenceOutputMat, 
-			Mat aMatInput, JSONObject aCustomThresholdJson)
+    public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		
@@ -66,14 +63,19 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	        OpenCvUtil.removeAlphaChannel(matOutput);
 	        
 	        // Perform text detection
+	        textDetector.setPreferableBackend(getDnnBackend());
+	        textDetector.setPreferableTarget(getDnnTarget());
 	        List<MatOfPoint> detections = new ArrayList<MatOfPoint>();
 	        textDetector.detect(matOutput, detections);
         	
 	        if(detections.size()>0)
 	        {
-		        // Draw detections on the image
-		        for (MatOfPoint contour : detections) {
-		            Imgproc.polylines(matOutput, List.of(contour), true, new Scalar(0, 255, 0), 2);
+	        	 if(ANNOTATE_OUTPUT_IMG)
+		         {
+			        // Draw detections on the image
+			        for (MatOfPoint contour : detections) {
+			            Imgproc.polylines(matOutput, List.of(contour), true, new Scalar(0, 255, 0), 2);
+			        }
 		        }
 	        }
 
@@ -83,8 +85,6 @@ public class DBTextDetector extends ObjDetBasePlugin {
 				mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutput.clone());
 				//
 				FrameDetectionMeta meta = new FrameDetectionMeta();
-				meta.setConfidence_threshold(DEF_CONFIDENCE_THRESHOLD);
-				meta.setNms_threshold(DEF_NMS_THRESHOLD);
 				meta.setObjml_model_name(getModelFileName());
 				meta.setObjml_plugin_name(getPluginName());
 				mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTION_META, meta);

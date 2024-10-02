@@ -7,12 +7,10 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.json.JSONObject;
 import org.opencv.core.Mat;
+import org.opencv.dnn.Net;
 import org.opencv.dnn_superres.DnnSuperResImpl;
 
-import hl.objml2.common.DetectedObj;
-import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.common.FrameDetectionMeta;
 import hl.objml2.plugin.ObjDetBasePlugin;
 
@@ -23,7 +21,7 @@ public class Upscale extends ObjDetBasePlugin {
 	private Pattern pattModelNameNScale = Pattern.compile("([A-Z][A-Z,a-z]+)_x([2,3,4])\\.pb");
 
 	@Override
-	public List<Mat> doInference(Mat aMatInput, JSONObject aCustomThresholdJson)
+	public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
 		List<Mat> listOutput = new ArrayList<>();
 		
@@ -51,6 +49,9 @@ public class Upscale extends ObjDetBasePlugin {
 	    	superres.readModel(super._model_filename);
     	}
     	
+    	superres.setPreferableBackend(getDnnBackend());
+    	superres.setPreferableTarget(getDnnTarget());
+    	
     	Mat matOutput = new Mat();
     	superres.upsample(aMatInput, matOutput);
     	
@@ -61,9 +62,7 @@ public class Upscale extends ObjDetBasePlugin {
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(
-			List<Mat> aInferenceOutputMat, 
-			Mat aMatInput, JSONObject aCustomThresholdJson)
+	public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
 		Map<String, Object> mapResult = new HashMap<String, Object>();
 		Mat matOutput = aInferenceOutputMat.get(0);
