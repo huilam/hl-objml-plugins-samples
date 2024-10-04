@@ -22,7 +22,10 @@ import hl.opencv.util.OpenCvUtil;
 
 public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	
-    private static boolean ANNOTATE_OUTPUT_IMG 		= true;
+	
+	private static boolean CROP_IMAGE 			= false;
+	private static boolean SWAP_RB 				= true;
+    private static boolean ANNOTATE_OUTPUT_IMG 	= true;
 	
     
     /**
@@ -34,13 +37,23 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	@Override
     public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
-	
-		OpenCvUtil.resize(aMatInput,
-				(int)DEF_INPUT_SIZE.width, (int)DEF_INPUT_SIZE.height, true);
+		double dScaleW = aMatInput.width() / DEF_INPUT_SIZE.width;
+		double dScaleH = aMatInput.height() / DEF_INPUT_SIZE.height;
 		
+		int iNewH = 0;
+		int iNewW = 0;
+		if(dScaleW>dScaleH)
+		{
+			iNewW = (int)DEF_INPUT_SIZE.width;
+		}
+		else
+		{
+			iNewH = (int)DEF_INPUT_SIZE.height;
+		}
+		OpenCvUtil.resize(aMatInput, iNewW, iNewH, true);
 		
 		Mat matDnnInput = Dnn.blobFromImage(
-				aMatInput, 1.0/255.0, DEF_INPUT_SIZE, Scalar.all(0), true, false);
+				aMatInput, 1.0/255.0, DEF_INPUT_SIZE, Scalar.all(0), SWAP_RB, CROP_IMAGE);
 		aDnnNet.setInput(matDnnInput);
 		List<Mat> listOutput = new ArrayList<>();
 		aDnnNet.forward(listOutput, aDnnNet.getUnconnectedOutLayersNames());
@@ -48,63 +61,84 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-    public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
-	{
-		Map<String, Object> mapResult = new HashMap<String, Object>();
-		
-		
-		Mat matHigherResHeatmap = aInferenceOutputMat.get(1);
-		int iKpCount 	= matHigherResHeatmap.size(1);
-		int iHeight 	= matHigherResHeatmap.size(2);
-		int iWidth 		= matHigherResHeatmap.size(3);
+	public Map<String, Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat) {
+	    Map<String, Object> mapResult = new HashMap<String, Object>();
 
-		System.out.println(" iKpCount 	= "+iKpCount);
-		System.out.println(" iWidth 	= "+iWidth);
-		System.out.println(" iHeight 	= "+iHeight);
+	    Mat matHigherResHeatmap = aInferenceOutputMat.get(1);
+	    int iKpCount = matHigherResHeatmap.size(1);  // Number of keypoints (17 for COCO dataset)
+	    int iHeight = matHigherResHeatmap.size(2);   // Heatmap height
+	    int iWidth = matHigherResHeatmap.size(3);    // Heatmap width
 
-	    // No need to reshape twice, reshape into (17 x 480 x 320)
+	    //System.out.println(" iKpCount  = " + iKpCount);
+	    //System.out.println(" iWidth    = " + iWidth);
+	    //System.out.println(" iHeight   = " + iHeight);
+
+	    // Reshape the heatmap to (17 x 480 x 320)
 	    matHigherResHeatmap = matHigherResHeatmap.reshape(1, new int[]{iKpCount, iHeight, iWidth});
 
-		System.out.println(" reshaped-matHigherResHeatmap 	= "+matHigherResHeatmap);
-		
-		double aWRatio = (aMatInput.width() / DEF_INPUT_SIZE.width);
-		double aHRatio = (aMatInput.height() / DEF_INPUT_SIZE.height);
-		
-		FrameDetectedObj frameObjs = new FrameDetectedObj();
-		for (int i = 0; i < iKpCount; i++) 
-		{	
+	    double aWRatio = (aMatInput.width() / DEF_INPUT_SIZE.width);
+	    double aHRatio = (aMatInput.height() / DEF_INPUT_SIZE.height);
+
+	    FrameDetectedObj frameObjs = new FrameDetectedObj();
+
+	    // Loop through each keypoint type (e.g., nose, left_eye, right_eye, etc.)
+	    for (int i = 0; i < iKpCount; i++) {
 	        // Extract the ith keypoint's heatmap
 	        Mat heatmap = matHigherResHeatmap.row(i).reshape(1, iHeight); // Shape becomes 480x320
 
-	        // Find the maximum value and its location in the heatmap
-	        Core.MinMaxLocResult mmr = Core.minMaxLoc(heatmap);
-	        double confScore = mmr.maxVal;  // Confidence score
-	        
-	        if(confScore>getConfidenceThreshold())
-	        {
-		        Point keypoint = mmr.maxLoc;  // Refined keypoint location
-		        String objLabel = OBJ_CLASSESS.get(i);
-	    
-			    double scaleX 	= (DEF_INPUT_SIZE.width / iWidth) * aWRatio;
-			    double scaleY 	= (DEF_INPUT_SIZE.height / iHeight) * aHRatio;
-			    keypoint.x *= scaleX;
-			    keypoint.y *= scaleY;
-			    
-			    DetectedObj obj = new DetectedObj(i, objLabel, keypoint, confScore);
-			    frameObjs.addDetectedObj(obj);
+	        // Find all local maxima as potential keypoints for this keypoint type
+	        List<Point> keypointCandidates = findLocalMaxima(heatmap, getConfidenceThreshold());
+
+	        for (Point candidate : keypointCandidates) {
+	            // Calculate the confidence score for this keypoint
+	            double confScore = heatmap.get((int)candidate.y, (int)candidate.x)[0];
+                String objLabel = OBJ_CLASSESS.get(i);
+
+                // Scale the keypoint coordinates back to the original image size
+                double scaleX = (DEF_INPUT_SIZE.width / iWidth) * aWRatio;
+                double scaleY = (DEF_INPUT_SIZE.height / iHeight) * aHRatio;
+                candidate.x *= scaleX;
+                candidate.y *= scaleY;
+
+                // Create a DetectedObj for this keypoint
+                DetectedObj obj = new DetectedObj(i, objLabel, candidate, confScore);
+                frameObjs.addDetectedObj(obj);
 	        }
-		}
-			        
-        // Draw bounding boxes
-		if(ANNOTATE_OUTPUT_IMG)
-        {
-			Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
-			mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
-        }
-        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
-        
-        return mapResult;
+	    }
+
+	    // Annotate the image with the detected skeletons
+	    if (ANNOTATE_OUTPUT_IMG) {
+	        Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
+	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
+	    }
+
+	    mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
+	    return mapResult;
 	}
+
+	/**
+	 * Find local maxima in the heatmap.
+	 */
+	private List<Point> findLocalMaxima(Mat heatmap, double threshold) {
+	    List<Point> maxima = new ArrayList<>();
+
+	    // Traverse the heatmap and find local maxima
+	    for (int y = 1; y < heatmap.rows() - 1; y++) {
+	        for (int x = 1; x < heatmap.cols() - 1; x++) {
+	            double centerValue = heatmap.get(y, x)[0];
+
+	            // Check if this point is a local maximum and above the threshold
+	            if (centerValue > threshold &&
+	                centerValue > heatmap.get(y - 1, x)[0] && centerValue > heatmap.get(y + 1, x)[0] &&
+	                centerValue > heatmap.get(y, x - 1)[0] && centerValue > heatmap.get(y, x + 1)[0]) {
+	                
+	                maxima.add(new Point(x, y));
+	            }
+	        }
+	    }
+	    return maxima;
+	}
+
 	
 	@Override
 	public Properties prePropInit(Properties aProps) 
