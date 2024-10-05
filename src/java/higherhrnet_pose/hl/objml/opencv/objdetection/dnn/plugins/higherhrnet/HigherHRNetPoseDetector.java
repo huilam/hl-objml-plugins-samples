@@ -20,6 +20,7 @@ import hl.objml2.plugin.ObjDetDnnBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
 
+@SuppressWarnings("unused")
 public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	
 	
@@ -31,7 +32,7 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
     /**
      * https://github.com/HRNet/HigherHRNet-Human-Pose-Estimation
      * 
-     * https://s3.ap-northeast-2.wasabisys.com/pinto-model-zoo/269_Higher-HRNet/resources.tar.gz
+     * https://github.com/PINTO0309/PINTO_model_zoo/blob/main/269_Higher-HRNet/download.sh
      */
     
 	@Override
