@@ -65,27 +65,45 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	public Map<String, Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat) {
 	    Map<String, Object> mapResult = new HashMap<String, Object>();
 
-	    Mat matHigherResHeatmap = aInferenceOutputMat.get(1);
-	    int iKpCount = matHigherResHeatmap.size(1);  // Number of keypoints (17 for COCO dataset)
-	    int iHeight = matHigherResHeatmap.size(2);   // Heatmap height
-	    int iWidth = matHigherResHeatmap.size(3);    // Heatmap width
+	    Mat matHeatmap 	= aInferenceOutputMat.get(1);
+	    FrameDetectedObj frameObjs = getAllKeyPoints(aMatInput, matHeatmap);
+	    
+	    Mat matTagmap 	= aInferenceOutputMat.get(0);
+	    frameObjs = groupKeypoints(frameObjs, matTagmap);
 
-	    //System.out.println(" iKpCount  = " + iKpCount);
-	    //System.out.println(" iWidth    = " + iWidth);
-	    //System.out.println(" iHeight   = " + iHeight);
+	    // Annotate the image with the detected skeletons
+	    if (ANNOTATE_OUTPUT_IMG) {
+	        Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
+	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
+	    }
 
-	    // Reshape the heatmap to (17 x 480 x 320)
-	    matHigherResHeatmap = matHigherResHeatmap.reshape(1, new int[]{iKpCount, iHeight, iWidth});
-
+	    mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
+	    return mapResult;
+	}
+	
+	private FrameDetectedObj groupKeypoints(FrameDetectedObj frameObjs, Mat matTagmap)
+	{
+		//TODO
+		return frameObjs;
+	}
+	
+	private FrameDetectedObj getAllKeyPoints(Mat aMatInput, Mat matHeatmap)
+	{
+	    FrameDetectedObj frameObjs = new FrameDetectedObj();
+	    
 	    double aWRatio = (aMatInput.width() / DEF_INPUT_SIZE.width);
 	    double aHRatio = (aMatInput.height() / DEF_INPUT_SIZE.height);
-
-	    FrameDetectedObj frameObjs = new FrameDetectedObj();
+	    int iKpCount 	= matHeatmap.size(1);  // Number of keypoints (17 for COCO dataset)
+	    int iHeight 	= matHeatmap.size(2);  // Heatmap height
+	    int iWidth 		= matHeatmap.size(3);  // Heatmap width
+	    
+	    // Reshape the heatmap to (17 x 480 x 320)
+	    matHeatmap = matHeatmap.reshape(1, new int[]{iKpCount, iHeight, iWidth});
 
 	    // Loop through each keypoint type (e.g., nose, left_eye, right_eye, etc.)
 	    for (int i = 0; i < iKpCount; i++) {
 	        // Extract the ith keypoint's heatmap
-	        Mat heatmap = matHigherResHeatmap.row(i).reshape(1, iHeight); // Shape becomes 480x320
+	        Mat heatmap = matHeatmap.row(i).reshape(1, iHeight); // Shape becomes 480x320
 
 	        // Find all local maxima as potential keypoints for this keypoint type
 	        List<Point> keypointCandidates = findLocalMaxima(heatmap, getConfidenceThreshold());
@@ -106,15 +124,7 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
                 frameObjs.addDetectedObj(obj);
 	        }
 	    }
-
-	    // Annotate the image with the detected skeletons
-	    if (ANNOTATE_OUTPUT_IMG) {
-	        Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
-	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
-	    }
-
-	    mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
-	    return mapResult;
+		return frameObjs;
 	}
 
 	/**
