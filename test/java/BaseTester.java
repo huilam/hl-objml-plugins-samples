@@ -8,7 +8,6 @@ import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.common.FrameDetectionMeta;
 import hl.objml2.plugin.IObjDetectionPlugin;
 import hl.objml2.plugin.ObjDetBasePlugin;
-import hl.objml2.plugin.ObjDetDnnBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
 public class BaseTester {

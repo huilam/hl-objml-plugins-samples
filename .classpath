@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/java/yunet_face"/>
+	<classpathentry kind="src" path="src/java/yolov11"/>
 	<classpathentry kind="src" path="src/java/higherhrnet_pose"/>
 	<classpathentry kind="src" path="src/java/humanseg"/>
 	<classpathentry kind="src" path="src/java/ultraface"/>
