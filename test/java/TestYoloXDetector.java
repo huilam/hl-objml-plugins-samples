@@ -1,4 +1,4 @@
-import hl.objml.opencv.objdetection.dnn.plugins.yolo.YoloXDetector;
+import hl.objml.opencv.objdetection.dnn.plugins.yolox.YoloXDetector;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 public class TestYoloXDetector extends BaseTester {
@@ -10,7 +10,7 @@ public class TestYoloXDetector extends BaseTester {
 		//detector.addObjClassOfInterest(new String[]{"truck", "car", "bus"});
 		//
 		BaseTester test = new BaseTester();
-		test.setTestImageFolder("./test/images/coco");
+		test.setTestImageFolder("./test/images/bikes-ii");
 		test.testDetector(detector);
 	}
 }
