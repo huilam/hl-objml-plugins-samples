@@ -6,8 +6,8 @@ Implementation from OpenCV_Contrib
 | No |   Plug-in Name   |   Category          |  ML-Model File                           |
 |----| ---------------- | ------------------- | ---------------------------------------- |
 | 01 | superres         | Image Enhancement   |  FSRCNN x2 x3 x4                         |
-| 02 | textdetection    | Object Detection    |  DB_TD500_resnet50                       |
-| 03 | yunet-face       | Object Detection    |  face_detection_yunet_2023mar            |
+| 02 | textdetection    | Text Detection      |  DB_TD500_resnet50                       |
+| 03 | yunet-face       | Face Detection      |  face_detection_yunet_2023mar            |
 
 <br>
 Implementation from Opensource 
