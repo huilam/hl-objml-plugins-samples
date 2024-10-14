@@ -59,8 +59,11 @@ public class BaseTester {
 		return null;
 	}
 	
-	public void testDetector(IObjDetectionPlugin aDetector)
+	public FrameDetectedObj testDetector(IObjDetectionPlugin aDetector)
 	{
+		FrameDetectedObj frameObjs 	= null;
+		
+		
 		OpenCvUtil.initOpenCV();
 		
 		try {
@@ -124,7 +127,7 @@ public class BaseTester {
 					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
 					
 			
-					FrameDetectedObj frameObjs 		= (FrameDetectedObj) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS);
+					frameObjs 		= (FrameDetectedObj) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS);
 					if(frameObjs!=null)
 					{
 						//
@@ -162,7 +165,9 @@ public class BaseTester {
 				}
 			}
 			
-		}		
+		}	
+		
+		return frameObjs;
 	}
 	
 }
