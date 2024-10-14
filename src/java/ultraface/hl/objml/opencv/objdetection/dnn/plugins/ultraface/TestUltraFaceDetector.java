@@ -1,4 +1,5 @@
-import hl.objml.opencv.objdetection.dnn.plugins.ultraface.UltraFaceDetector;
+package hl.objml.opencv.objdetection.dnn.plugins.ultraface;
+
 import hl.objml2.dev.plugins.test.BaseTester;
 
 public class TestUltraFaceDetector extends BaseTester {
