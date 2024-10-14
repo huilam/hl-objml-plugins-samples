@@ -1,4 +1,5 @@
-import sample.SampleObjDetDnnPlugin;
+import hl.objml2.dev.plugins.sample.SampleObjDetDnnPlugin;
+import hl.objml2.dev.plugins.test.BaseTester;
 
 
 public class TestDetector extends BaseTester {

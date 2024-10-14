@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/java/yunet_face"/>
+	<classpathentry kind="src" path="src/java/plugin_dev"/>
 	<classpathentry kind="src" path="src/java/yolov11"/>
 	<classpathentry kind="src" path="src/java/higherhrnet_pose"/>
 	<classpathentry kind="src" path="src/java/humanseg"/>
@@ -8,7 +9,6 @@
 	<classpathentry kind="src" path="src/java/textdetection"/>
 	<classpathentry kind="src" path="src/java/vitpose"/>
 	<classpathentry kind="src" path="src/java/yolox"/>
-	<classpathentry kind="src" path="src/java/empty_sample"/>
 	<classpathentry kind="src" path="test/java"/>
 	<classpathentry kind="src" path="src/java/superres"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">

@@ -1,4 +1,5 @@
 import hl.objml.opencv.objdetection.dnn.plugins.humanseg.HumanSegDetector;
+import hl.objml2.dev.plugins.test.BaseTester;
 
 public class TestHumanSegDetector extends BaseTester {
 

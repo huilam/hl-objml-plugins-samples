@@ -1,4 +1,5 @@
 import hl.objml.opencv.objdetection.dnn.plugins.yolov11.YoloV11Detector;
+import hl.objml2.dev.plugins.test.BaseTester;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 public class TestYoloV11Detector extends BaseTester {

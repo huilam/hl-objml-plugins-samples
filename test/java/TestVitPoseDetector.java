@@ -1,4 +1,5 @@
 import hl.objml.opencv.objdetection.dnn.plugins.vitpose.VitPoseDetector;
+import hl.objml2.dev.plugins.test.BaseTester;
 
 public class TestVitPoseDetector extends BaseTester {
 
