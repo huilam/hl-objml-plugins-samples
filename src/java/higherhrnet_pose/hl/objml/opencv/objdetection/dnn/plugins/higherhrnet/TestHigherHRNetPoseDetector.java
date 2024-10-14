@@ -1,13 +1,13 @@
-package hl.objml2.dev.plugins.sample;
+package hl.objml.opencv.objdetection.dnn.plugins.higherhrnet;
 
 import hl.objml2.dev.plugins.test.BaseTester;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
-public class TestSampleDnnDetector extends BaseTester {
+public class TestHigherHRNetPoseDetector extends BaseTester {
 
 	public static void main(String[] args)
 	{
-		ObjDetDnnBasePlugin detector = new SampleObjDetDnnPlugin();
+		ObjDetDnnBasePlugin detector = new HigherHRNetPoseDetector();
 		detector.addObjClassOfInterest(new String[]{"person"});
 		//detector.addObjClassOfInterest(new String[]{"suitcase", "backpack", "handbag"});
 		//detector.addObjClassOfInterest(new String[]{"truck", "car", "bus"});
