@@ -1,6 +1,7 @@
 package hl.objml2.dev.plugins.test;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -111,7 +112,11 @@ public class BaseTester {
 				Mat matImg = ObjDetBasePlugin.getCvMatFromFile(fImg);
 				
 				long lInferenceStart = System.currentTimeMillis();
-				Map<String, Object> mapResult = pluginDetector.detect(matImg, null);
+				
+				List<Mat> listInferOutput = pluginDetector.doInference(matImg, pluginDetector.getDnnNet());
+				Map<String, Object> mapResult = pluginDetector.parseDetections(matImg, listInferOutput);
+				
+				
 				long lInferenceEnd = System.currentTimeMillis();
 				
 				if(mapResult!=null)
@@ -127,6 +132,20 @@ public class BaseTester {
 					System.out.println("     - Inference Backend    : "+pluginDetector.getDnnBackendDesc());
 					System.out.println("     - Inference Target     : "+pluginDetector.getDnnTargetDesc());
 					System.out.println("     - Inference Time (Ms)  : "+lInferenceMs);
+					
+					System.out.println("     - Inference Outputs    : ");
+					int outputIdx=0;
+					for(Mat matOutput : listInferOutput)
+					{
+						String sMatDims = matOutput.toString();
+						int iPos = sMatDims.indexOf(",");
+						if(iPos>-1)
+						{
+							sMatDims = sMatDims.substring(0, iPos) +" ]";
+						}
+						
+					System.out.println("        "+(outputIdx++)+" : "+sMatDims);	
+					}
 					
 			
 					frameObjs 		= (FrameDetectedObj) mapResult.get(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS);
