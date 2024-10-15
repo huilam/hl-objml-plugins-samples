@@ -15,9 +15,15 @@ import hl.opencv.util.OpenCvUtil;
 
 public class BaseTester {
 	
-	private String DEF_FOLDER_IMAGE = "./test/images/";
+	private String DEF_FOLDER_IMAGE 			= "./test/images/";
+	private String DEF_OUTPUT_IMG_FORMAT_EXT 	= "png";
 	
 	private String FOLDER_IMAGE = DEF_FOLDER_IMAGE;
+	
+	public void setOutputImageExtension(String aImgExt)
+	{
+		this.DEF_OUTPUT_IMG_FORMAT_EXT = aImgExt;
+	}
 	
 	public void setTestImageFolder(String aImageFolder)
 	{
@@ -44,7 +50,7 @@ public class BaseTester {
 		
 	}
 	
-	public static String saveImage(
+	public String saveImage(
 			String aPluginName,
 			Mat aMatImage, File aOutputFolder, String aOrigImgFileName)
 	{
@@ -53,7 +59,7 @@ public class BaseTester {
 		
 		String sOutputFileName = aPluginName+"_"+aOrigImgFileName;
 		
-		sOutputFileName += ".png";
+		sOutputFileName += "."+DEF_OUTPUT_IMG_FORMAT_EXT;
 	
 		boolean isSaved = OpenCvUtil.saveImageAsFile(aMatImage, aOutputFolder.getAbsolutePath()+"/"+sOutputFileName);
 		
