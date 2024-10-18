@@ -1,6 +1,5 @@
-<project basedir=".">
+<project>
 	
-	<property name="test" location="test"/>
 	<property name="src" location="src/java/${ant.project.name}"/>
 	<property name="build" location="build/${ant.project.name}"/>
 	<property name="lib" location="lib"/>
