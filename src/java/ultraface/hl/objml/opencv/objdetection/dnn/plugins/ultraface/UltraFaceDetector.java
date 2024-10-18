@@ -41,6 +41,9 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 	@Override
 	public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
+		if(aDnnNet==null)
+			aDnnNet = getDnnNet();
+		
 		Mat matDnnImg 		= null;
 		List<Mat> outputs 	= null;
 		try {

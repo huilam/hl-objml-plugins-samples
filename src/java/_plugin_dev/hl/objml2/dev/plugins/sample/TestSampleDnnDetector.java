@@ -1,6 +1,6 @@
 package hl.objml2.dev.plugins.sample;
 
-import hl.objml2.dev.plugins.test.BaseTester;
+import hl.objml2.plugin.test.BaseTester;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 public class TestSampleDnnDetector extends BaseTester {

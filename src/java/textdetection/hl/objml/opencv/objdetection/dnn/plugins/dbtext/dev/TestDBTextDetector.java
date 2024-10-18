@@ -1,5 +1,6 @@
-package hl.objml.opencv.objdetection.dnn.plugins.dbtext;
+package hl.objml.opencv.objdetection.dnn.plugins.dbtext.dev;
 
+import hl.objml.opencv.objdetection.dnn.plugins.dbtext.DBTextDetector;
 import hl.objml2.plugin.test.BaseTester;
 
 public class TestDBTextDetector extends BaseTester {

@@ -1,0 +1,3 @@
+<project name="yolov11" default="jar" basedir=".">
+	<import file="./base_antbuild.xml"/>
+</project>

@@ -1,6 +1,6 @@
 package hl.objml.opencv.objdetection.dnn.plugins.higherhrnet;
 
-import hl.objml2.dev.plugins.test.BaseTester;
+import hl.objml2.plugin.test.BaseTester;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 public class TestHigherHRNetPoseDetector extends BaseTester {

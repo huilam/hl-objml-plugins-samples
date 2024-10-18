@@ -1,10 +1,14 @@
 package hl.objml.opencv.objdetection.dnn.plugins.higherhrnet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -23,11 +27,9 @@ import hl.opencv.util.OpenCvUtil;
 @SuppressWarnings("unused")
 public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	
-	
 	private static boolean CROP_IMAGE 			= false;
 	private static boolean SWAP_RB 				= true;
     private static boolean ANNOTATE_OUTPUT_IMG 	= true;
-	
     
     /**
      * https://github.com/HRNet/HigherHRNet-Human-Pose-Estimation
@@ -63,13 +65,18 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	
 	@Override
 	public Map<String, Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat) {
-	    Map<String, Object> mapResult = new HashMap<String, Object>();
 
+		System.out.println();
+		System.out.println(aInferenceOutputMat.get(0));
+		System.out.println(aInferenceOutputMat.get(1));		
+		
+		Map<String, Object> mapResult = new HashMap<String, Object>();
+
+		Mat matTagmap 	= aInferenceOutputMat.get(0);
 	    Mat matHeatmap 	= aInferenceOutputMat.get(1);
-	    FrameDetectedObj frameObjs = getAllKeyPoints(aMatInput, matHeatmap);
+	    FrameDetectedObj frameObjs = getAllKeyPoints(aMatInput, matHeatmap, matTagmap);
 	    
-	    Mat matTagmap 	= aInferenceOutputMat.get(0);
-	    frameObjs = groupKeypoints(frameObjs, matTagmap);
+	    frameObjs = groupKeypoints(aMatInput, matTagmap, frameObjs);
 
 	    // Annotate the image with the detected skeletons
 	    if (ANNOTATE_OUTPUT_IMG) {
@@ -81,25 +88,51 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	    return mapResult;
 	}
 	
-	private FrameDetectedObj groupKeypoints(FrameDetectedObj frameObjs, Mat matTagmap)
+	private FrameDetectedObj groupKeypoints(Mat aMatInput, Mat matTagmap, FrameDetectedObj frameObjs)
 	{
+	    int iKpCount 	= matTagmap.size(1);  // Number of keypoints 
+	    int iHeight 	= matTagmap.size(2);  // Heatmap height
+	    int iWidth 		= matTagmap.size(3);  // Heatmap width
+		
+	    // Reshape the matTagmap to (34 x 80 x 120)
+	    matTagmap = matTagmap.reshape(1, new int[]{iKpCount, iHeight, iWidth});
+	    
+	    Map<Double, DetectedObj> mapDetectedObj = new TreeMap<>();
+	    
+	    for(String sObjClassName : frameObjs.getObjClassNames())
+	    {
+		    List<DetectedObj> listObj = frameObjs.getDetectedObjByObjClassName(sObjClassName);
+		    System.out.print(" "+sObjClassName+" ("+listObj.size()+")");
+	    	for(DetectedObj obj : listObj)
+	    	{
+	    		double dTagValue = Double.parseDouble(obj.getObj_trackingid());
+	    		
+	    		System.out.printf("   - %.8f\n",dTagValue);
+                mapDetectedObj.put(dTagValue, obj);
+	    	}
+	    }
+    	
+	    
 		//TODO
 		return frameObjs;
 	}
 	
-	private FrameDetectedObj getAllKeyPoints(Mat aMatInput, Mat matHeatmap)
+	private FrameDetectedObj getAllKeyPoints(Mat aMatInput, Mat matHeatmap, Mat matTagmap)
 	{
 	    FrameDetectedObj frameObjs = new FrameDetectedObj();
 	    
-	    double aWRatio = (aMatInput.width() / DEF_INPUT_SIZE.width);
-	    double aHRatio = (aMatInput.height() / DEF_INPUT_SIZE.height);
 	    int iKpCount 	= matHeatmap.size(1);  // Number of keypoints (17 for COCO dataset)
 	    int iHeight 	= matHeatmap.size(2);  // Heatmap height
 	    int iWidth 		= matHeatmap.size(3);  // Heatmap width
 	    
+	    double aWRatio = (aMatInput.width() / DEF_INPUT_SIZE.width);
+	    double aHRatio = (aMatInput.height() / DEF_INPUT_SIZE.height);
+        double scaleX = (DEF_INPUT_SIZE.width / iWidth) * aWRatio;
+        double scaleY = (DEF_INPUT_SIZE.height / iHeight) * aHRatio;	    
+        
 	    // Reshape the heatmap to (17 x 480 x 320)
 	    matHeatmap = matHeatmap.reshape(1, new int[]{iKpCount, iHeight, iWidth});
-
+	    
 	    // Loop through each keypoint type (e.g., nose, left_eye, right_eye, etc.)
 	    for (int i = 0; i < iKpCount; i++) {
 	        // Extract the ith keypoint's heatmap
@@ -108,19 +141,34 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	        // Find all local maxima as potential keypoints for this keypoint type
 	        List<Point> keypointCandidates = findLocalMaxima(heatmap, getConfidenceThreshold());
 
-	        for (Point candidate : keypointCandidates) {
+	        for (Point pt : keypointCandidates) {
+	        	int iX = (int)pt.x;
+	        	int iY = (int)pt.y;
+	        	
 	            // Calculate the confidence score for this keypoint
-	            double confScore = heatmap.get((int)candidate.y, (int)candidate.x)[0];
+	            double confScore = heatmap.get(iY, iX)[0];
                 String objLabel = OBJ_CLASSESS.get(i);
-
+                
+                //get TagValue
+                int iKpIdx = i * 2; //tagMap 34 = keypoint 17
+                int itagY = iY / 2;
+                int itagX = iX / 2;
+                double tagValX = matTagmap.get(new int[]{0, iKpIdx, itagY, itagX})[0];
+	            double tagValY = matTagmap.get(new int[]{0, iKpIdx+1, itagY, itagX})[0];
+	            //double dKpTagValue = Math.sqrt(Math.pow(tagValX, 2) + Math.pow(tagValY, 2));
+	            double dKpTagValue = tagValX;// + (tagValY);
+                
+	            System.out.printf("tagValX= %8f\n",tagValX);
+	            System.out.printf("tagValY= %8f\n",tagValY);
+	            System.out.printf("dKpTagValue= %8f\n\n",dKpTagValue);
+	            
                 // Scale the keypoint coordinates back to the original image size
-                double scaleX = (DEF_INPUT_SIZE.width / iWidth) * aWRatio;
-                double scaleY = (DEF_INPUT_SIZE.height / iHeight) * aHRatio;
-                candidate.x *= scaleX;
-                candidate.y *= scaleY;
+	            pt.x *= scaleX;
+	            pt.y *= scaleY;
 
                 // Create a DetectedObj for this keypoint
-                DetectedObj obj = new DetectedObj(i, objLabel, candidate, confScore);
+                DetectedObj obj = new DetectedObj(i, objLabel, pt, confScore);
+                obj.setObj_trackingid(String.valueOf(dKpTagValue));
                 frameObjs.addDetectedObj(obj);
 	        }
 	    }
