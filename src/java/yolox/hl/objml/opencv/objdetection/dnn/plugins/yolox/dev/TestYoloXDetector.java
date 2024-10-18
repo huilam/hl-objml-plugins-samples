@@ -1,6 +1,7 @@
-package hl.objml.opencv.objdetection.dnn.plugins.yolox;
+package hl.objml.opencv.objdetection.dnn.plugins.yolox.dev;
 
 import hl.objml2.plugin.test.BaseTester;
+import hl.objml.opencv.objdetection.dnn.plugins.yolox.YoloXDetector;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 public class TestYoloXDetector extends BaseTester {
