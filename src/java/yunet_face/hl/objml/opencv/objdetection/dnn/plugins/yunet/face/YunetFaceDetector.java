@@ -118,7 +118,7 @@ public class YunetFaceDetector extends ObjDetBasePlugin {
 	            }
 	        }
 	        
-	        if(frameObjs.getTotalDetectionCount()>0)
+	        if(frameObjs.getFrame_total_detection()>0)
 	        {
 				if(ANNOTATE_OUTPUT_IMG)
 		        {
