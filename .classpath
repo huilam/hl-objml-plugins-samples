@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src/java/_plugin_dev"/>
+	<classpathentry kind="src" path="src/java/openpose"/>
 	<classpathentry kind="src" path="src/java/higherhrnet_pose"/>
 	<classpathentry kind="src" path="src/java/yolov11"/>
 	<classpathentry kind="src" path="src/java/vitpose"/>
@@ -17,9 +18,9 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/native"/>
 	<classpathentry kind="lib" path="lib/hl-common_jdk11_20250110-1045-28.jar"/>
-	<classpathentry kind="lib" path="lib/hl-objml-plugin-framework_jdk11_20250110-1049-28.jar"/>
 	<classpathentry kind="lib" path="lib/hl-opencv_jdk11_20250110-1043-01.jar"/>
 	<classpathentry kind="lib" path="lib/json-20250107.jar"/>
 	<classpathentry kind="lib" path="lib/opencv-4110.jar"/>
+	<classpathentry kind="lib" path="lib/hl-objml-plugin-framework_jdk11_20250201-1243-19.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
