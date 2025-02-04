@@ -19,9 +19,9 @@ import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 public class BaseOpenPoseDetector extends ObjDetDnnBasePlugin {
 	
-    private static boolean SWAP_RB_CHANNEL			= false;
-    private static boolean APPLY_IMG_PADDING 		= false;
-    private static boolean ANNOTATE_OUTPUT_IMG 		= true;
+	protected static boolean SWAP_RB_CHANNEL		= false;
+    protected static boolean APPLY_IMG_PADDING 		= false;
+    protected static boolean ANNOTATE_OUTPUT_IMG 	= true;
 
 	/**
 	 *  https://github.com/CMU-Perceptual-Computing-Lab/openpose
