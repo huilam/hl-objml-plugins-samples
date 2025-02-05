@@ -8,7 +8,7 @@ public class TestOpenPoseHandDetector extends BaseTester {
 	public static void main(String[] args)
 	{
 		BaseTester test = new BaseTester();
-		test.setTestImageFolder("./test/images/coco");
+		test.setTestImageFolder("./test/images/internet/hands");
 		test.testDetector(new OpenPoseHandDetector());
 	}
 }
