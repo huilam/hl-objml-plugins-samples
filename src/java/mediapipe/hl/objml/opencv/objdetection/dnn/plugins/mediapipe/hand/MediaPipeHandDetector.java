@@ -1,6 +1,9 @@
 package hl.objml.opencv.objdetection.dnn.plugins.mediapipe.hand;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect2d;
@@ -14,49 +17,116 @@ public class MediaPipeHandDetector extends BaseMediaPipeDetector {
 	 */ 
 	
     @Override
-	protected void decodePredictions(
-			final List<Mat> listMatOutputs, 
-	        final Mat aMatInput,
-	        List<DetectedObj> aDetectedObj,
-	        final double aConfidenceThreshold) {
+    protected void decodePredictions(
+            final List<Mat> listMatOutputs, 
+            final Mat aMatInput,
+            List<DetectedObj> aDetectedObj,
+            final double aConfidenceThreshold) {
 
-		
-    	
-        Mat o1 = listMatOutputs.get(0);  // 1*2016* 1*CV_32FC1 = Confidence scores
-        Mat o2 = listMatOutputs.get(1);  // 1*2016*18*CV_32FC1 = Bounding boxes & keypoints 
+        Mat o1 = listMatOutputs.get(0);  // 1×2016×1 = Confidence scores
+        Mat o2 = listMatOutputs.get(1);  // 1×2016×18 = Bounding boxes & keypoints 
+
+        float imgW = aMatInput.width();
+        float imgH = aMatInput.height();
         
-	    Mat output1 = o1.reshape(1, new int[] {1, 2016});
-	    Mat output2 = o2.reshape(1, new int[] {2016,18});
-
-        // Use OpenCV's minMaxLoc() to find highest confidence
-        Core.MinMaxLocResult mmr = Core.minMaxLoc(output1);
-        double maxConfidence = mmr.maxVal;
-        int bestIndex = (int) mmr.maxLoc.y; // Get best detection index
+        float modelW = (float) DEF_INPUT_SIZE.width;
+        float modelH = (float) DEF_INPUT_SIZE.height;
         
-        if (maxConfidence > aConfidenceThreshold && bestIndex < 2016) {
-        	float[] bestDetection = new float[18];
-            output2.get(bestIndex, 0, bestDetection);
+        float scaleX = imgW / modelW;
+        float scaleY = imgH / modelH;
+        
+        Mat output1 = o1.reshape(1, new int[]{2016, 1});
+        Mat output2 = o2.reshape(1, new int[]{2016, 18});
+        
+        boolean isGetBestDetection = true;
+        
+        Map<Integer,Float> mapDetections = 
+        		isGetBestDetection ?
+        				getBestDetection(output1, aConfidenceThreshold):
+        				getAllDetections(output1, aConfidenceThreshold);
+        
+        for(Object oIdx : mapDetections.keySet())
+        {
+        	int idx = (int)oIdx;
+        	float confidence = (float) mapDetections.get(idx);
+    
+            float[] bestDetection = new float[18];
+            output2.get(idx, 0, bestDetection);
 
-            // Ensure values are in range [0,1] before scaling
-            float x = Math.max(0, Math.min(bestDetection[0], 1)) * aMatInput.cols();
-            float y = Math.max(0, Math.min(bestDetection[1], 1)) * aMatInput.rows();
-            float width = Math.max(0, Math.min(bestDetection[2], 1)) * aMatInput.cols();
-            float height = Math.max(0, Math.min(bestDetection[3], 1)) * aMatInput.rows();
+            // Extract bounding box values
+            float cx = bestDetection[0];
+            float cy = bestDetection[1];
+            float width  = bestDetection[2];
+            float height = bestDetection[3];
 
-            // Ensure box stays within the image
-            x = Math.max(0, x);
-            y = Math.max(0, y);
-            width = Math.min(aMatInput.cols() - x, width);
-            height = Math.min(aMatInput.rows() - y, height);
+            // Convert from center-based to top-left based
+            float x = cx - (width/2);
+            float y = cy - (height/2);
+
+            // Scale to original image dimensions
+            x *= scaleX;
+            y *= scaleY;
+            width *= scaleX;
+            height *= scaleY;
+
+            // Clip bounding box within image bounds
+            x = Math.max(0, Math.min(x, imgW - 1));
+            y = Math.max(0, Math.min(y, imgH - 1));
+            width = Math.min(width, imgW - x);
+            height = Math.min(height, imgH - y);
+
+            Rect2d box = new Rect2d(x, y, width, height);
             
-            String label = OBJ_CLASSESS.get(bestIndex);
-            Rect2d box = new Rect2d(x,y,width,height);
-            
-            DetectedObj obj = new DetectedObj(bestIndex, label, box, maxConfidence);
+            System.out.println();
+            System.out.println(">> " + idx + " confidence=" + confidence + " box=" + box);
+
+            DetectedObj obj = new DetectedObj(idx, "Hand", box, confidence);
             aDetectedObj.add(obj);
             
         }
-		
-    	ANNOTATE_OUTPUT_IMG = true;
-	}
+
+        ANNOTATE_OUTPUT_IMG = true;
+    }
+    
+    private double normalizeConfidenceScore(double rawConfidence)
+    {
+    	return rawConfidence > 1.0 ? (1.0 / (1.0 + Math.exp(-rawConfidence))) : rawConfidence;
+    }
+    
+    private Map<Integer, Float> getAllDetections(
+    		Mat output1,final double aConfidenceThreshold)
+    {
+    	Map<Integer, Float> mapDetections = new HashMap<Integer, Float>();
+    	// Iterate through all detections
+        for (int idx = 0; idx < 2016; idx++) {
+            double[] confidenceArray = output1.get(idx, 0);
+            if (confidenceArray == null || confidenceArray.length == 0) continue;
+
+            float confidence = (float) normalizeConfidenceScore(confidenceArray[0]);
+
+            if (confidence > aConfidenceThreshold) {
+            	mapDetections.put(Integer.valueOf(idx), Float.valueOf(confidence));
+            }
+        }
+        return mapDetections;
+        
+    }
+    
+    private Map<Integer, Float> getBestDetection(
+    		Mat output1,final double aConfidenceThreshold)
+    {
+    	Map<Integer, Float> mapDetections = new HashMap<Integer, Float> ();
+    	
+    	// Use OpenCV's minMaxLoc() to find highest confidence
+        Core.MinMaxLocResult mmr = Core.minMaxLoc(output1);
+        float confidence = (float) normalizeConfidenceScore(mmr.maxVal);
+        
+        if(confidence>aConfidenceThreshold)
+        {
+            int idx = (int) mmr.maxLoc.y; // Get best detection index   
+            mapDetections.put(Integer.valueOf(idx), Float.valueOf(confidence));
+        }
+        return mapDetections;
+    }
+
 }

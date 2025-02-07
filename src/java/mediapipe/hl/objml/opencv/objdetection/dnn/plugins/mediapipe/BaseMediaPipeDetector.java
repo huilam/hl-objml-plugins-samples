@@ -1,6 +1,5 @@
 package hl.objml.opencv.objdetection.dnn.plugins.mediapipe;
 
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +19,7 @@ import hl.objml2.plugin.ObjDetDnnBasePlugin;
 public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 	
 	protected static boolean SWAP_RB_CHANNEL		= true;
-    protected static boolean APPLY_IMG_PADDING 		= false;
+    protected static boolean APPLY_IMG_PADDING 		= true;
     protected static boolean ANNOTATE_OUTPUT_IMG 	= true;
 
 	/**
@@ -123,7 +122,7 @@ public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 			}
 		}
 
-		return Dnn.blobFromImage(aMatInput, 1.0 / 255.0, sizeInput, Scalar.all(0), isSwapRBChannel, false);		
+		return Dnn.blobFromImage(aMatInput, 1.0/255.0, sizeInput, Scalar.all(0), isSwapRBChannel, false);		
 	}
 
 	protected void decodePredictions(
