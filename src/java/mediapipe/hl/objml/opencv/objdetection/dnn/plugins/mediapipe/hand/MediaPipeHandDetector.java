@@ -54,25 +54,29 @@ public class MediaPipeHandDetector extends BaseMediaPipeDetector {
             output2.get(idx, 0, bestDetection);
 
             // Extract bounding box values
-            float cx = bestDetection[0] * scaleX;
-            float cy = bestDetection[1] * scaleY;
-            float width  = bestDetection[2] * scaleX;
-            float height = bestDetection[3] * scaleY;
+            float cx = bestDetection[0];
+            float cy = bestDetection[1];
+            float width  = bestDetection[2];
+            float height = bestDetection[3];
 
             // Convert from center-based to top-left based
-            float x = cx - (width/2);
-            float y = cy - (height/2);
+            float x = Math.abs(cx - (width/2));
+            float y = Math.abs(cy - (height/2));
 
             // Clip bounding box within image bounds
+            /**
             x = Math.max(0, Math.min(x, imgW - 1));
             y = Math.max(0, Math.min(y, imgH - 1));
             width = Math.min(width, imgW - x);
             height = Math.min(height, imgH - y);
+            **/
 
-            Rect2d box = new Rect2d(x, y, width, height);
+            System.out.println("\n>> " + idx + " confidence=" + confidence + " (x:"+x+",y:"+y+",w:"+width+",h:"+height+")");
+            Rect2d box = new Rect2d(
+            		x * scaleX, y * scaleY, 
+            		width * scaleX, height * scaleY);
             
-            System.out.println("\n>> " + idx + " confidence=" + confidence + " box=" + box);
-
+ 
             DetectedObj obj = new DetectedObj(idx, "Hand", box, confidence);
             aDetectedObj.add(obj);
         }
