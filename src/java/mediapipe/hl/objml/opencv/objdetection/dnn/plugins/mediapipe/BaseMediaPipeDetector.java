@@ -15,6 +15,7 @@ import hl.objml2.common.DetectedObj;
 import hl.objml2.common.DetectedObjUtil;
 import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
+import hl.opencv.util.OpenCvUtil;
 
 public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 	
@@ -39,8 +40,21 @@ public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 	        }
 			
 			// Prepare input
-			matInputImg = aMatInput.clone();					
+			matInputImg = aMatInput.clone();
+			double dImgRatio = (double)matInputImg.height() / (double)matInputImg.width();
+			
 			Size sizeDnnInput = DEF_INPUT_SIZE;
+			double dModelRatio = (double)sizeDnnInput.height / (double)sizeDnnInput.width;
+			if(dImgRatio!=dModelRatio && dModelRatio==1)
+			{
+				int iLongest = matInputImg.height();
+				
+				if(matInputImg.width()>iLongest)
+					iLongest = matInputImg.width();
+				
+				OpenCvUtil.resize(matInputImg, iLongest, iLongest, false);
+				dImgRatio = (double)matInputImg.height() / (double)matInputImg.width();
+			}
 			
 			matDnnImg = doInferencePreProcess(matInputImg, sizeDnnInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
 			aDnnNet.setInput(matDnnImg);
