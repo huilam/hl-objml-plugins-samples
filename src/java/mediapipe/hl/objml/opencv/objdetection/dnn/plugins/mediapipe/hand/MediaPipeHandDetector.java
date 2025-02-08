@@ -43,7 +43,7 @@ public class MediaPipeHandDetector extends BaseMediaPipeDetector {
         Mat output2 = o2.reshape(1, new int[]{iTotalDetections, iDataSize});
         
         Map<Integer, Float> mapDetections = 
-        		getTopDetections(2, output1, aConfidenceThreshold);
+        		getTopDetections(1, output1, aConfidenceThreshold);
         
         for(Object oIdx : mapDetections.keySet())
         {
@@ -73,9 +73,10 @@ public class MediaPipeHandDetector extends BaseMediaPipeDetector {
 
             System.out.println("\n>> " + idx + " confidence=" + confidence + " (x:"+x+",y:"+y+",w:"+width+",h:"+height+")");
             Rect2d box = new Rect2d(
-            		x * scaleX, y * scaleY, 
-            		width * scaleX, height * scaleY);
-            
+            		Math.round(x * scaleX), 
+            		Math.round(y * scaleY), 
+            		Math.round(width * scaleX), 
+            		Math.round(height * scaleY));
  
             DetectedObj obj = new DetectedObj(idx, "Hand", box, confidence);
             aDetectedObj.add(obj);
