@@ -1,10 +1,8 @@
 package hl.objml.opencv.objdetection.dnn.plugins.mediapipe.hand;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Rect2d;
 import hl.objml.opencv.objdetection.dnn.plugins.mediapipe.BaseMediaPipeDetector;
@@ -85,38 +83,4 @@ public class MediaPipeHandDetector extends BaseMediaPipeDetector {
         ANNOTATE_OUTPUT_IMG = true;
     }
     
-    private double normalizeConfidenceScore(double rawConfidence)
-    {
-    	return rawConfidence > 1.0 ? (1.0 / (1.0 + Math.exp(-rawConfidence))) : rawConfidence;
-    }
-    
-    protected Map<Integer, Float> getTopDetections(
-    		int iTopN, final Mat output1,final double aConfidenceThreshold)
-    {
-    	if(iTopN<1)
-    		iTopN = 1;
-    	
-    	Mat matTmpOutput = output1.clone();
-    	
-    	Map<Integer, Float> mapTopNDetections = new HashMap<Integer, Float> ();
-    	for(int n=0; n<iTopN; n++)
-    	{
-    		// Use OpenCV's minMaxLoc() to find highest confidence
-            Core.MinMaxLocResult mmr = Core.minMaxLoc(matTmpOutput);
-            float confidence = (float) normalizeConfidenceScore(mmr.maxVal);
-            
-            if(confidence>aConfidenceThreshold)
-            {
-                int idx = (int) mmr.maxLoc.y; // Get best detection index   
-                mapTopNDetections.put(Integer.valueOf(idx), Float.valueOf(confidence));
-                matTmpOutput.put(idx, 0, -1);
-            }
-            else
-            {
-            	break;
-            }
-    	}
-    	return mapTopNDetections;
-    }
-
 }
