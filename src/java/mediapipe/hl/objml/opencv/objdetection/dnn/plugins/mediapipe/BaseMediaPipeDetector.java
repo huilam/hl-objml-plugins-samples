@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
@@ -145,4 +146,49 @@ public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 	        List<DetectedObj> aDetectedObj,
 	        final double aConfidenceThreshold) {
 	}
+	
+    protected double normalizeConfidenceScore(double rawConfidence)
+    {
+    	return rawConfidence > 1.0 ? (1.0 / (1.0 + Math.exp(-rawConfidence))) : rawConfidence;
+    }
+    
+    protected Map<Integer, Float> getTopDetections(
+    		int iTopN, final Mat output1,final double aConfidenceThreshold)
+    {
+    	Map<Integer, Float> mapTopNDetections = new HashMap<Integer, Float> ();
+    	
+    	if(iTopN<1)
+    		iTopN = 1;
+    	
+    	Mat matTmpOutput = null;
+    	
+    	try {
+	    	matTmpOutput = output1.clone();
+	    	
+	    	for(int n=0; n<iTopN; n++)
+	    	{
+	    		// Use OpenCV's minMaxLoc() to find highest confidence
+	            Core.MinMaxLocResult mmr = Core.minMaxLoc(matTmpOutput);
+	            float confidence = (float) normalizeConfidenceScore(mmr.maxVal);
+	            
+	            if(confidence>aConfidenceThreshold)
+	            {
+	                int idx = (int) mmr.maxLoc.y; // Get best detection index   
+	                mapTopNDetections.put(Integer.valueOf(idx), Float.valueOf(confidence));
+	                matTmpOutput.put(idx, 0, -1);
+	            }
+	            else
+	            {
+	            	break;
+	            }
+	    	}
+    	}
+    	finally
+    	{
+    		if(matTmpOutput!=null) 
+    			matTmpOutput.release();
+    	}
+    	return mapTopNDetections;
+    }
+
 }
