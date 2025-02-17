@@ -41,7 +41,7 @@ public class MediaPipeHandDetector extends BaseMediaPipeDetector {
         Mat output2 = o2.reshape(1, new int[]{iTotalDetections, iDataSize});
         
         Map<Integer, Float> mapDetections = 
-        		getTopDetections(1, output1, aConfidenceThreshold);
+        		getTopDetections(2, output1, aConfidenceThreshold);
         
         for(Object oIdx : mapDetections.keySet())
         {
