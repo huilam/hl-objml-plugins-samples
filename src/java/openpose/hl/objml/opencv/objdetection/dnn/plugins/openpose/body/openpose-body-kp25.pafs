@@ -1,0 +1,27 @@
+# OpenPose BODY_25 Keypoint Pairs (PAFs)
+# Format: <keypointA>,<keypointB>
+# Order and direction must be preserved for correct skeleton detection
+1-8   # Neck -> MidHip
+8-9   # MidHip -> RightHip
+9-10  # RightHip -> RightKnee
+10-11 # RightKnee -> RightAnkle
+8-12  # MidHip -> LeftHip
+12-13 # LeftHip -> LeftKnee
+13-14 # LeftKnee -> LeftAnkle
+1-2   # Neck -> RightShoulder
+2-3   # RightShoulder -> RightElbow
+3-4   # RightElbow -> RightWrist
+1-5   # Neck -> LeftShoulder
+5-6   # LeftShoulder -> LeftElbow
+6-7   # LeftElbow -> LeftWrist
+0-15  # Nose -> RightEye
+15-17 # RightEye -> RightEar
+0-16  # Nose -> LeftEye
+16-18 # LeftEye -> LeftEar
+1-0   # Neck -> Nose
+14-19 # LeftAnkle -> LeftBigToe
+14-20 # LeftAnkle -> LeftSmallToe
+14-21 # LeftAnkle -> LeftHeel
+11-22 # RightAnkle -> RightBigToe
+11-23 # RightAnkle -> RightSmallToe
+11-24 # RightAnkle -> RightHeel
