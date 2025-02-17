@@ -126,6 +126,27 @@ public class BaseOpenPoseDetector extends ObjDetDnnBasePlugin {
 
 		return Dnn.blobFromImage(aMatInput, 1.0 / 255.0, sizeInput, Scalar.all(0), isSwapRBChannel, false);		
 	}
+	
+	protected List<DetectedObj> calcPAFs(
+			final Mat aMatReshaped
+			,final int iTotalKP
+			,Map<Integer, List<DetectedObj>> aMapDetectedObjs
+			,List<int[]> aPAFList)
+	{
+		List<DetectedObj> aDetectedObjs = new ArrayList<DetectedObj>();
+		
+		// Part/Pair Affinity Fields (PAFs)
+		for(int[] iPairKP : aPAFList)
+		{
+			int iP1 = iPairKP[0];
+			int iP2 = iPairKP[1];
+			
+			
+		}
+		
+		return aDetectedObjs;
+	}
+	
 
 	protected void decodePredictions(
 	        final Mat matResult, 

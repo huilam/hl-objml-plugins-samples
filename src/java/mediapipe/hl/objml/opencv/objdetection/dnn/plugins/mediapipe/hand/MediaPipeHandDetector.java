@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.opencv.core.Mat;
+import org.opencv.core.Point;
 import org.opencv.core.Rect2d;
 import hl.objml.opencv.objdetection.dnn.plugins.mediapipe.BaseMediaPipeDetector;
 import hl.objml2.common.DetectedObj;
@@ -40,16 +41,16 @@ public class MediaPipeHandDetector extends BaseMediaPipeDetector {
         Mat output1 = o1.reshape(1, new int[]{iTotalDetections, o1.size(2)});
         Mat output2 = o2.reshape(1, new int[]{iTotalDetections, iDataSize});
         
-        Map<Integer, Float> mapDetections = 
+        Map<Point, Float> mapDetections = 
         		getTopDetections(2, output1, aConfidenceThreshold);
         
         for(Object oIdx : mapDetections.keySet())
         {
-        	int idx = (int)oIdx;
-        	float confidence = (float) mapDetections.get(idx);
+        	Point pt = (Point)oIdx;
+        	float confidence = (float) mapDetections.get(pt);
     
             float[] bestDetection = new float[iDataSize];
-            output2.get(idx, 0, bestDetection);
+            output2.get((int)pt.y, (int)pt.x, bestDetection);
 
             // Extract bounding box values
             float cx = bestDetection[0];
@@ -69,14 +70,14 @@ public class MediaPipeHandDetector extends BaseMediaPipeDetector {
             height = Math.min(height, imgH - y);
             **/
 
-            System.out.println("\n>> " + idx + " confidence=" + confidence + " (x:"+x+",y:"+y+",w:"+width+",h:"+height+")");
+            System.out.println("\n>> " + pt + " confidence=" + confidence + " (x:"+x+",y:"+y+",w:"+width+",h:"+height+")");
             Rect2d box = new Rect2d(
             		Math.round(x * scaleX), 
             		Math.round(y * scaleY), 
             		Math.round(width * scaleX), 
             		Math.round(height * scaleY));
  
-            DetectedObj obj = new DetectedObj(idx, "Hand", box, confidence);
+            DetectedObj obj = new DetectedObj(0, "Hand", box, confidence);
             aDetectedObj.add(obj);
         }
 
