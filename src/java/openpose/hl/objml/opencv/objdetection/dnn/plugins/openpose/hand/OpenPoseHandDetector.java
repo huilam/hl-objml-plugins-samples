@@ -2,6 +2,7 @@ package hl.objml.opencv.objdetection.dnn.plugins.openpose.hand;
 
 
 import java.util.List;
+import java.util.Map;
 
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
@@ -9,6 +10,7 @@ import org.opencv.core.Point;
 
 import hl.objml.opencv.objdetection.dnn.plugins.openpose.BaseOpenPoseDetector;
 import hl.objml2.common.DetectedObj;
+import hl.objml2.common.DetectedObjUtil;
 
 public class OpenPoseHandDetector extends BaseOpenPoseDetector {
 	
@@ -21,7 +23,7 @@ public class OpenPoseHandDetector extends BaseOpenPoseDetector {
 	protected void decodePredictions(
 	        final Mat matResult, 
 	        final Mat aMatInput,
-	        List<DetectedObj> aDetectedObj,
+	        List<DetectedObj> aDetectedObjs,
 	        final double aConfidenceThreshold) {
 
 		//1*22*46*46*CV_32FC1
@@ -36,25 +38,31 @@ public class OpenPoseHandDetector extends BaseOpenPoseDetector {
 		double scaleX = (double) aMatInput.width() / iW;
 	    double scaleY = (double) aMatInput.height() / iH;
 	    
-		for (int i = 0; i < iKP; i++) {
+	    for (int i = 0; i < iKP; i++) {
+			
 			// Extract heatmap for keypoint 'i'
 		    Mat heatMap = reshapedMat.row(i);
 		    heatMap = heatMap.reshape(1, iH);  // Reshape to 2D (46x46)
 		    
-	        // Find the location of the maximum confidence
-	        Core.MinMaxLocResult mmr = Core.minMaxLoc(heatMap);
-	        double confidence = mmr.maxVal;
-	        
-	        if (confidence > aConfidenceThreshold) {
-	        	String label = OBJ_CLASSESS.get(i);
-	            int x = (int) (mmr.maxLoc.x * scaleX);
-	            int y = (int) (mmr.maxLoc.y * scaleY);
+		    System.out.println("heatMap--->"+heatMap);
+		    
+		    Map<Point, Float> mapTopDetections = 
+		    		DetectedObjUtil.getTopDetectionsFor2DMat(-1, heatMap, aConfidenceThreshold);
+		    
+		    for(Object oIdx : mapTopDetections.keySet())
+	        {
+	        	Point pt = (Point)oIdx;
+	        	float confidence = (float) mapTopDetections.get(pt);
+	    
+	            int x = (int) (pt.x * scaleX);
+	            int y = (int) (pt.y * scaleY);
 
+	            String label = OBJ_CLASSESS.get(i);
 	            DetectedObj obj = new DetectedObj(i, label, new Point(x,y), confidence);
-                aDetectedObj.add(obj);
-                
-	            // Add the detected keypoint with confidence score
-	            //System.out.println(label+" "+confidence+" -> ("+x+","+y+")");
+	            
+	            System.out.println(obj);
+	            
+	            aDetectedObjs.add(obj);
 	        }
 		}
 		

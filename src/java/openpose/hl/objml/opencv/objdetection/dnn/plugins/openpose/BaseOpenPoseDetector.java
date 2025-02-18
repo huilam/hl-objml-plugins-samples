@@ -151,7 +151,7 @@ public class BaseOpenPoseDetector extends ObjDetDnnBasePlugin {
 	protected void decodePredictions(
 	        final Mat matResult, 
 	        final Mat aMatInput,
-	        List<DetectedObj> aDetectedObj,
+	        List<DetectedObj> aDetectedObjs,
 	        final double aConfidenceThreshold) {
 	}
 }
