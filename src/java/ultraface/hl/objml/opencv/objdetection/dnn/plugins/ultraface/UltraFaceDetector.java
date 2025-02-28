@@ -48,7 +48,7 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 		List<Mat> outputs 	= null;
 		try {
 			// Prepare input
-			Size sizeInput 	= DEF_INPUT_SIZE;
+			Size sizeInput 	= getImageInputSize();
 			matDnnImg = aMatInput.clone();					
 			matDnnImg 	= inferencePreProcess(matDnnImg, sizeInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
 			aDnnNet.setInput(matDnnImg);
@@ -76,7 +76,7 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 
 			 // Decode detection
 	        double dConfThreshold 			= super.getConfidenceThreshold();
-	        double dNMSThreshold 			= super.DEF_NMS_THRESHOLD;
+	        double dNMSThreshold 			= super.getNMSThreshold();
 	        
 	        List<Rect2d> outputBoxes 		= new ArrayList<>();
 	        List<Float> outputConfidences 	= new ArrayList<>();
@@ -201,8 +201,8 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
         matBoxes 	= matBoxes.reshape(1, new int[] {totalAnchors, 4});
         matScores 	= matScores.reshape(1, new int[] {totalAnchors, 2});
         
-		double dScaleW = sizeOrg.width / DEF_INPUT_SIZE.width;
-		double dScaleH = sizeOrg.height /DEF_INPUT_SIZE.height;
+		double dScaleW = sizeOrg.width / getImageInputSize().width;
+		double dScaleH = sizeOrg.height /getImageInputSize().height;
 		
 		for (int i = 0; i < matBoxes.rows(); i++) {
 			
@@ -210,11 +210,11 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 		    double dConfScore = dScores[0];
 		    if(dConfScore > aConfidenceThreshold)
 		    {
-			    double left 	= matBoxes.get(i, 0)[0] * DEF_INPUT_SIZE.width;
-			    double top 		= matBoxes.get(i, 1)[0] * DEF_INPUT_SIZE.height;
+			    double left 	= matBoxes.get(i, 0)[0] * getImageInputSize().width;
+			    double top 		= matBoxes.get(i, 1)[0] * getImageInputSize().height;
 			    //
-			    double right 	= matBoxes.get(i, 2)[0] * DEF_INPUT_SIZE.width;
-			    double bottom 	= matBoxes.get(i, 3)[0] * DEF_INPUT_SIZE.height;
+			    double right 	= matBoxes.get(i, 2)[0] * getImageInputSize().width;
+			    double bottom 	= matBoxes.get(i, 3)[0] * getImageInputSize().height;
 			
 			    // Calculate width and height
 			    double width 	= right - left;

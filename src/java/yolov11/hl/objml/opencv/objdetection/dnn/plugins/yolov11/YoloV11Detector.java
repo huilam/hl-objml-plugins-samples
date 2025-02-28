@@ -37,7 +37,7 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 			
 			// Prepare input					
 			matDnnImg = Dnn.blobFromImage(aMatInput, 
-					1d / 255d, DEF_INPUT_SIZE, 
+					1d / 255d, getImageInputSize(), 
 					Scalar.all(0), true, false);
 			aDnnNet.setInput(matDnnImg);
 
@@ -72,11 +72,11 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 		Mat matResult = aInferenceOutputMat.get(0);
 		
 		 // Decode detection
-        double scaleOrgW = aMatInput.width() / DEF_INPUT_SIZE.width;
-        double scaleOrgH = aMatInput.height() / DEF_INPUT_SIZE.height;
+        double scaleOrgW = aMatInput.width() / getImageInputSize().width;
+        double scaleOrgH = aMatInput.height() / getImageInputSize().height;
         
         double fConfidenceThreshold 	= getConfidenceThreshold();
-        double fNMSThreshold 			= DEF_NMS_THRESHOLD;
+        double fNMSThreshold 			= getNMSThreshold();
         
         List<Rect2d> outputBoxes 		= new ArrayList<>();
         List<Float> outputConfidences 	= new ArrayList<>();

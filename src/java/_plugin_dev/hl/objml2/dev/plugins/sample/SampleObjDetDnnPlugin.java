@@ -21,7 +21,7 @@ public class SampleObjDetDnnPlugin extends ObjDetDnnBasePlugin {
 	{
 		System.out.println("doInference()");
 		Mat matDnnInput = Dnn.blobFromImage(
-				aMatInput, 1.0/255.0, DEF_INPUT_SIZE, Scalar.all(0), true, false);
+				aMatInput, 1.0/255.0, getImageInputSize(), Scalar.all(0), true, false);
 		aDnnNet.setInput(matDnnInput);
 		List<Mat> listOutput = new ArrayList<>();
 		aDnnNet.forward(listOutput, aDnnNet.getUnconnectedOutLayersNames());

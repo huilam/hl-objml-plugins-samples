@@ -41,7 +41,7 @@ public class BaseOpenPoseDetector extends ObjDetDnnBasePlugin {
 			
 			// Prepare input
 			matInputImg = aMatInput.clone();					
-			Size sizeDnnInput = DEF_INPUT_SIZE;
+			Size sizeDnnInput = getImageInputSize();
 			
 			matDnnImg = doInferencePreProcess(matInputImg, sizeDnnInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
 			aDnnNet.setInput(matDnnImg);

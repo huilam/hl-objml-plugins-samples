@@ -40,23 +40,23 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	@Override
     public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
 	{
-		double dScaleW = aMatInput.width() / DEF_INPUT_SIZE.width;
-		double dScaleH = aMatInput.height() / DEF_INPUT_SIZE.height;
+		double dScaleW = aMatInput.width() / getImageInputSize().width;
+		double dScaleH = aMatInput.height() / getImageInputSize().height;
 		
 		int iNewH = 0;
 		int iNewW = 0;
 		if(dScaleW>dScaleH)
 		{
-			iNewW = (int)DEF_INPUT_SIZE.width;
+			iNewW = (int)getImageInputSize().width;
 		}
 		else
 		{
-			iNewH = (int)DEF_INPUT_SIZE.height;
+			iNewH = (int)getImageInputSize().height;
 		}
 		OpenCvUtil.resize(aMatInput, iNewW, iNewH, true);
 		
 		Mat matDnnInput = Dnn.blobFromImage(
-				aMatInput, 1.0/255.0, DEF_INPUT_SIZE, Scalar.all(0), SWAP_RB, CROP_IMAGE);
+				aMatInput, 1.0/255.0, getImageInputSize(), Scalar.all(0), SWAP_RB, CROP_IMAGE);
 		aDnnNet.setInput(matDnnInput);
 		List<Mat> listOutput = new ArrayList<>();
 		aDnnNet.forward(listOutput, aDnnNet.getUnconnectedOutLayersNames());
@@ -125,10 +125,10 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	    int iHeight 	= matHeatmap.size(2);  // Heatmap height
 	    int iWidth 		= matHeatmap.size(3);  // Heatmap width
 	    
-	    double aWRatio = (aMatInput.width() / DEF_INPUT_SIZE.width);
-	    double aHRatio = (aMatInput.height() / DEF_INPUT_SIZE.height);
-        double scaleX = (DEF_INPUT_SIZE.width / iWidth) * aWRatio;
-        double scaleY = (DEF_INPUT_SIZE.height / iHeight) * aHRatio;	    
+	    double aWRatio = (aMatInput.width() / getImageInputSize().width);
+	    double aHRatio = (aMatInput.height() / getImageInputSize().height);
+        double scaleX = (getImageInputSize().width / iWidth) * aWRatio;
+        double scaleY = (getImageInputSize().height / iHeight) * aHRatio;	    
         
 	    // Reshape the heatmap to (17 x 480 x 320)
 	    matHeatmap = matHeatmap.reshape(1, new int[]{iKpCount, iHeight, iWidth});

@@ -40,7 +40,7 @@ public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 			
 			// Prepare input
 			matInputImg = aMatInput.clone();
-			Size sizeDnnInput = DEF_INPUT_SIZE;
+			Size sizeDnnInput = getImageInputSize();
 			
 			matDnnImg = doInferencePreProcess(matInputImg, sizeDnnInput, true, SWAP_RB_CHANNEL);
 			aDnnNet.setInput(matDnnImg);

@@ -47,7 +47,7 @@ public class YoloXDetector extends ObjDetDnnBasePlugin {
 			
 			// Prepare input
 			matInputImg = aMatInput.clone();					
-			matDnnImg = preProcess(matInputImg, DEF_INPUT_SIZE, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
+			matDnnImg = preProcess(matInputImg, getImageInputSize(), APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
 			aDnnNet.setInput(matDnnImg);
 
 	        // Run inference
@@ -73,13 +73,13 @@ public class YoloXDetector extends ObjDetDnnBasePlugin {
 		
 		
 		Mat matResult = aInferenceOutputMat.get(0);
-		matResult = postProcess(matResult, DEF_INPUT_SIZE);
+		matResult = postProcess(matResult, getImageInputSize());
 		
 		 // Decode detection
-        double scaleOrgW = aMatInput.width() / DEF_INPUT_SIZE.width;
-        double scaleOrgH = aMatInput.height() / DEF_INPUT_SIZE.height;
+        double scaleOrgW = aMatInput.width() / getImageInputSize().width;
+        double scaleOrgH = aMatInput.height() / getImageInputSize().height;
         double fConfidenceThreshold 	= getConfidenceThreshold();
-        double fNMSThreshold 			= DEF_NMS_THRESHOLD;
+        double fNMSThreshold 			= getNMSThreshold();
         
         List<Rect2d> outputBoxes 		= new ArrayList<>();
         List<Float> outputConfidences 	= new ArrayList<>();

@@ -1,4 +1,4 @@
-package hl.objml.opencv.objdetection.dnn.plugins.mediapipe.hand;
+package hl.objml.opencv.objdetection.dnn.plugins.mediapipe.face;
 
 import java.util.List;
 import java.util.Map;
@@ -6,13 +6,14 @@ import java.util.Map;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect2d;
+
 import hl.objml.opencv.objdetection.dnn.plugins.mediapipe.BaseMediaPipeDetector;
 import hl.objml2.common.DetectedObj;
 
-public class MediaPipeHandDetector extends BaseMediaPipeDetector {
+public class MediaPipeFaceDetector extends BaseMediaPipeDetector {
 	
 	/**
-	 *  https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task
+	 *  https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task
 	 */ 
 	
     @Override
@@ -28,16 +29,14 @@ public class MediaPipeHandDetector extends BaseMediaPipeDetector {
         float imgW = aMatInput.width();
         float imgH = aMatInput.height();
         
-        
-System.out.println(">>>>>>>> imgW="+imgW+" imgH="+imgH);
-        
         float modelW = (float) getImageInputSize().width;
         float modelH = (float) getImageInputSize().height;
         
-        float scale = Math.max(imgW, imgH) /  Math.max(modelW,modelH);
+        float scaleX = modelW / imgW;
+        float scaleY = modelH / imgH;
         
         int iTotalDetections = o1.size(1);
-        int iDataSize = 18;
+        int iDataSize = 16;
         
         
         Mat output1 = o1.reshape(1, new int[]{iTotalDetections, o1.size(2)});
@@ -72,18 +71,17 @@ System.out.println(">>>>>>>> imgW="+imgW+" imgH="+imgH);
             height = Math.min(height, imgH - y);
             **/
 
-           // System.out.println("\n>> " + pt + " confidence=" + confidence + " (x:"+x+",y:"+y+",w:"+width+",h:"+height+")");
+            System.out.println("\n>> " + pt + " confidence=" + confidence + " (x:"+x+",y:"+y+",w:"+width+",h:"+height+")");
             Rect2d box = new Rect2d(
-            		Math.round(x * scale), 
-            		Math.round(y * scale), 
-            		Math.round(width * scale), 
-            		Math.round(height * scale));
+            		Math.round(x / scaleX), 
+            		Math.round(y / scaleY), 
+            		Math.round(width / scaleX), 
+            		Math.round(height / scaleY));
  
-            DetectedObj obj = new DetectedObj(0, "Hand", box, confidence);
+            DetectedObj obj = new DetectedObj(0, "Face", box, confidence);
             aDetectedObj.add(obj);
         }
 
         ANNOTATE_OUTPUT_IMG = true;
     }
-    
 }
