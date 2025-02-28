@@ -52,7 +52,7 @@ public class YunetFaceDetector extends ObjDetBasePlugin {
 		        faceDetectorYN = FaceDetectorYN.create(
 		        		fileModel.getAbsolutePath(),"", 
 		        		DEF_INPUT_SIZE, 
-		        		(float)DEF_CONFIDENCE_THRESHOLD, 
+		        		(float)getConfidenceThreshold(), 
 		        		(float)DEF_NMS_THRESHOLD, 
 		        		topK, backendId, targetId);
 		     }

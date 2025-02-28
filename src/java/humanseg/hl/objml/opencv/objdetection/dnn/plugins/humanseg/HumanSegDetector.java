@@ -75,7 +75,7 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 		
 		// Process output
         Mat matResult = outputs.get(0);
-        double fConfidenceThreshold 	= super.DEF_CONFIDENCE_THRESHOLD;
+        double fConfidenceThreshold 	= super.getConfidenceThreshold();
         List<DetectedObj> outputKeypoints 	= new ArrayList<>();
         //
         decodePredictions(matResult, 

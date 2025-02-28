@@ -75,7 +75,7 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
         double scaleOrgW = aMatInput.width() / DEF_INPUT_SIZE.width;
         double scaleOrgH = aMatInput.height() / DEF_INPUT_SIZE.height;
         
-        double fConfidenceThreshold 	= DEF_CONFIDENCE_THRESHOLD;
+        double fConfidenceThreshold 	= getConfidenceThreshold();
         double fNMSThreshold 			= DEF_NMS_THRESHOLD;
         
         List<Rect2d> outputBoxes 		= new ArrayList<>();

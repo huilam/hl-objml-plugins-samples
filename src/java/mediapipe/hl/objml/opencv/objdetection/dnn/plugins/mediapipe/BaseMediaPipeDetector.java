@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Scalar;
@@ -17,12 +16,10 @@ import hl.objml2.common.DetectedObj;
 import hl.objml2.common.DetectedObjUtil;
 import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
-import hl.opencv.util.OpenCvUtil;
 
 public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 	
 	protected static boolean SWAP_RB_CHANNEL		= true;
-    protected static boolean APPLY_IMG_PADDING 		= true;
     protected static boolean ANNOTATE_OUTPUT_IMG 	= true;
 
 	/**
@@ -43,22 +40,9 @@ public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 			
 			// Prepare input
 			matInputImg = aMatInput.clone();
-			double dImgRatio = (double)matInputImg.height() / (double)matInputImg.width();
-			
 			Size sizeDnnInput = DEF_INPUT_SIZE;
-			double dModelRatio = (double)sizeDnnInput.height / (double)sizeDnnInput.width;
-			if(dImgRatio!=dModelRatio && dModelRatio==1)
-			{
-				int iLongest = matInputImg.height();
-				
-				if(matInputImg.width()>iLongest)
-					iLongest = matInputImg.width();
-				
-				OpenCvUtil.resize(matInputImg, iLongest, iLongest, false);
-				dImgRatio = (double)matInputImg.height() / (double)matInputImg.width();
-			}
 			
-			matDnnImg = doInferencePreProcess(matInputImg, sizeDnnInput, APPLY_IMG_PADDING, SWAP_RB_CHANNEL);
+			matDnnImg = doInferencePreProcess(matInputImg, sizeDnnInput, true, SWAP_RB_CHANNEL);
 			aDnnNet.setInput(matDnnImg);
 
 	        // Run inference
@@ -85,7 +69,7 @@ public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 		List<Mat> listMatOutputs = aInferenceOutputMat;
 		
 		// Process output
-        double dConfidenceThreshold = DEF_CONFIDENCE_THRESHOLD;
+        double dConfidenceThreshold = getConfidenceThreshold();
         List<DetectedObj> outputKeypoints 	= new ArrayList<>();
         //
         decodePredictions(listMatOutputs, 
@@ -116,6 +100,10 @@ public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 	private static Mat doInferencePreProcess(Mat aMatInput, Size sizeInput, 
 			boolean isApplyImgPadding, boolean isSwapRBChannel)
 	{
+		//System.out.println();
+		//System.out.println("sizeInput="+sizeInput);
+		//System.out.println("before aMatInput="+aMatInput.size());
+		
 		if(isApplyImgPadding)
 		{
 			Mat matPaddedImg = null;
@@ -137,6 +125,7 @@ public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 					matROI.release();
 			}
 		}
+		//System.out.println("after aMatInput="+aMatInput.size());
 
 		return Dnn.blobFromImage(aMatInput, 1.0/255.0, sizeInput, Scalar.all(0), isSwapRBChannel, false);		
 	}

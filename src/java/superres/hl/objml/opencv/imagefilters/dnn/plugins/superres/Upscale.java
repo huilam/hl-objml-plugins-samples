@@ -72,7 +72,7 @@ public class Upscale extends ObjDetBasePlugin {
 			mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutput);
 			//
 			FrameDetectionMeta meta = new FrameDetectionMeta();
-			meta.setConfidence_threshold(DEF_CONFIDENCE_THRESHOLD);
+			meta.setConfidence_threshold(getConfidenceThreshold());
 			meta.setNms_threshold(DEF_NMS_THRESHOLD);
 			meta.setObjml_model_name(getModelFileName());
 			meta.setObjml_plugin_name(getPluginName());

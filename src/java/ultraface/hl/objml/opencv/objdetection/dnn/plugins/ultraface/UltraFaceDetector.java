@@ -75,7 +75,7 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 		try {
 
 			 // Decode detection
-	        double dConfThreshold 			= super.DEF_CONFIDENCE_THRESHOLD;
+	        double dConfThreshold 			= super.getConfidenceThreshold();
 	        double dNMSThreshold 			= super.DEF_NMS_THRESHOLD;
 	        
 	        List<Rect2d> outputBoxes 		= new ArrayList<>();

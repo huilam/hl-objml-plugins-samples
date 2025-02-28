@@ -71,7 +71,7 @@ public class BaseOpenPoseDetector extends ObjDetDnnBasePlugin {
 		
 		// Process output
         Mat matResult = outputs.get(0);
-        double dConfidenceThreshold = DEF_CONFIDENCE_THRESHOLD;
+        double dConfidenceThreshold = getConfidenceThreshold();
         List<DetectedObj> outputKeypoints 	= new ArrayList<>();
         //
         decodePredictions(matResult, 
