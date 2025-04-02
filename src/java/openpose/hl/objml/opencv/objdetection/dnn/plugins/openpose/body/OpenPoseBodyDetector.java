@@ -43,14 +43,38 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 		System.out.println("iKP="+iKP+", iPAF="+iPAF);
 		System.out.println("iH="+iH+", iW="+iW);
 		
+		aDetectedObjs = extractKeypoints(reshapedMat, aMatInput, aDetectedObjs, aConfidenceThreshold);
+		if(CALC_PAF)
+		{
+			aDetectedObjs = calcPAFs(reshapedMat, iKP, aDetectedObjs, OBJ_PAF_LIST);	
+		}
 		
-		double scaleX = (double) aMatInput.width() / iW;
+    	ANNOTATE_OUTPUT_IMG = true;
+	}
+    
+    
+    protected List<DetectedObj> extractKeypoints(
+    		final Mat aReshapedMat 
+    		,final Mat aMatInput 
+    		,List<DetectedObj> aDetectedObjs
+	        ,final double aConfidenceThreshold)
+    {
+    	int iKP = super.OBJ_CLASSESS.size(); //25
+      	int iPAF = aReshapedMat.size(0)-iKP;
+		int iH = aReshapedMat.size(1);
+		int iW = aReshapedMat.size(2);
+		
+		System.out.println("iKP="+iKP+", iPAF="+iPAF);
+		System.out.println("iH="+iH+", iW="+iW);
+		
+    	double scaleX = (double) aMatInput.width() / iW;
 	    double scaleY = (double) aMatInput.height() / iH;
 	    
-		for (int i = 0; i < iKP; i++) {
+    	for (int i = 0; i < iKP; i++) 
+    	{
 			
 			// Extract heatmap for keypoint 'i'
-		    Mat heatMap = reshapedMat.row(i);
+		    Mat heatMap = aReshapedMat.row(i);
 		    heatMap = heatMap.reshape(1, iH);  // Reshape to 2D (46x46)
 		    
 		    System.out.println("heatMap--->"+heatMap);
@@ -73,30 +97,11 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 	            
 	            aDetectedObjs.add(obj);
 	        }
+		    
 		}
-		
-		
-		if(CALC_PAF)
-		{
-			Map<Integer, List<DetectedObj>> mapDetectedObjs = new HashMap<Integer, List<DetectedObj>>();
-			
-			for( DetectedObj obj : aDetectedObjs)
-			{
-				Integer iKPId = obj.getObj_classid();
-				List<DetectedObj> listObj = mapDetectedObjs.get(iKPId);
-				if(listObj==null)
-					listObj = new ArrayList<DetectedObj>();
-				listObj.add(obj);
-				mapDetectedObjs.put(iKPId, listObj);
-			}
-			
-			aDetectedObjs = calcPAFs(reshapedMat, iKP, mapDetectedObjs, OBJ_PAF_LIST);
-			
-		}
-		
-		
-    	ANNOTATE_OUTPUT_IMG = true;
-	}
+    	return aDetectedObjs;
+    }
+    
     
     protected static double normalizeScoreTo1(double rawScore)
     {
