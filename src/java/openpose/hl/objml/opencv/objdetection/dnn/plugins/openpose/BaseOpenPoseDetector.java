@@ -127,21 +127,45 @@ public class BaseOpenPoseDetector extends ObjDetDnnBasePlugin {
 		return Dnn.blobFromImage(aMatInput, 1.0 / 255.0, sizeInput, Scalar.all(0), isSwapRBChannel, false);		
 	}
 	
+	
 	protected List<DetectedObj> calcPAFs(
 			final Mat aMatReshaped
-			,final int iTotalKP
+			,List<DetectedObj> aDetectedObjs
+			,List<int[]> aPAFList)
+	{
+		Map<Integer, List<DetectedObj>> mapDetectedObjs = new HashMap<Integer, List<DetectedObj>>();
+		
+		for( DetectedObj obj : aDetectedObjs)
+		{
+			Integer iKPId = obj.getObj_classid();
+			List<DetectedObj> listObj = mapDetectedObjs.get(iKPId);
+			if(listObj==null)
+				listObj = new ArrayList<DetectedObj>();
+			listObj.add(obj);
+			mapDetectedObjs.put(iKPId, listObj);
+		}
+		return calcPAFs(aMatReshaped, mapDetectedObjs, aPAFList);
+		
+	}
+	
+	protected List<DetectedObj> calcPAFs(
+			final Mat aMatReshaped
 			,Map<Integer, List<DetectedObj>> aMapDetectedObjs
 			,List<int[]> aPAFList)
 	{
 		List<DetectedObj> aDetectedObjs = new ArrayList<DetectedObj>();
 		
+		int iKP = super.OBJ_CLASSESS.size(); //25
+      	int iPAF = aMatReshaped.size(0)-iKP;
+		
+      	
 		// Part/Pair Affinity Fields (PAFs)
 		for(int[] iPairKP : aPAFList)
 		{
 			int iP1 = iPairKP[0];
 			int iP2 = iPairKP[1];
 			
-			
+			// TODO
 		}
 		
 		return aDetectedObjs;

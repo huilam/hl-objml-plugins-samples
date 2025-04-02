@@ -1,12 +1,9 @@
 package hl.objml.opencv.objdetection.dnn.plugins.openpose.body;
 
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 
@@ -46,7 +43,7 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 		aDetectedObjs = extractKeypoints(reshapedMat, aMatInput, aDetectedObjs, aConfidenceThreshold);
 		if(CALC_PAF)
 		{
-			aDetectedObjs = calcPAFs(reshapedMat, iKP, aDetectedObjs, OBJ_PAF_LIST);	
+			aDetectedObjs = calcPAFs(reshapedMat, aDetectedObjs, OBJ_PAF_LIST);	
 		}
 		
     	ANNOTATE_OUTPUT_IMG = true;
