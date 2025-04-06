@@ -1,9 +1,7 @@
 package hl.objml.opencv.imagefilters.dnn.plugins.superres;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,6 +10,7 @@ import org.opencv.dnn.Net;
 import org.opencv.dnn_superres.DnnSuperResImpl;
 
 import hl.objml2.common.FrameDetectionMeta;
+import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
 
 
@@ -62,25 +61,24 @@ public class Upscale extends ObjDetBasePlugin {
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
+	public MLPluginFrameOutput parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
-		Map<String, Object> mapResult = new HashMap<String, Object>();
+		MLPluginFrameOutput frameOutput = new MLPluginFrameOutput();
 		Mat matOutput = aInferenceOutputMat.get(0);
 		if(matOutput!=null)
 		{
-			//
-			mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutput);
+			frameOutput.setAnnotatedFrameImage(matOutput);
 			//
 			FrameDetectionMeta meta = new FrameDetectionMeta();
 			meta.setConfidence_threshold(getConfidenceThreshold());
 			meta.setNms_threshold(getNMSThreshold());
 			meta.setObjml_model_name(getModelFileName());
 			meta.setObjml_plugin_name(getPluginName());
-			mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTION_META, meta);
+			frameOutput.setFrameDetectionMeta(meta);
 			//
 		}
 		
-		return mapResult;
+		return frameOutput;
 	}
 
 }

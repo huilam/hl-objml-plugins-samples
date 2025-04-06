@@ -2,10 +2,7 @@ package hl.objml.opencv.objdetection.dnn.plugins.dbtext;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.Scalar;
@@ -16,6 +13,7 @@ import org.opencv.dnn.TextDetectionModel_DB;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml2.common.FrameDetectionMeta;
+import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
@@ -49,9 +47,9 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	}
 	
 	@Override
-    public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
+    public MLPluginFrameOutput parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
-		Map<String, Object> mapResult = new HashMap<String, Object>();
+		MLPluginFrameOutput frameOutput = new MLPluginFrameOutput();
 		
 		if(!isPluginOK() || aMatInput==null)
 			return null;
@@ -82,12 +80,13 @@ public class DBTextDetector extends ObjDetBasePlugin {
 			//
 	        if(matOutput!=null)
 	        {
-				mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutput.clone());
+	        	frameOutput.setAnnotatedFrameImage(matOutput.clone());
 				//
 				FrameDetectionMeta meta = new FrameDetectionMeta();
 				meta.setObjml_model_name(getModelFileName());
 				meta.setObjml_plugin_name(getPluginName());
-				mapResult.put(ObjDetBasePlugin._KEY_OUTPUT_FRAME_DETECTION_META, meta);
+				
+				frameOutput.setFrameDetectionMeta(meta);
 				//
 	        }
 	        
@@ -99,7 +98,7 @@ public class DBTextDetector extends ObjDetBasePlugin {
 				matOutput.release();
         	}
 		}
-		return mapResult;
+		return frameOutput;
 	}
 	
 

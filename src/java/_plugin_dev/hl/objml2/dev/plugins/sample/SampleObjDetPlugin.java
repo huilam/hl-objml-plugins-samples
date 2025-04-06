@@ -8,6 +8,7 @@ import java.util.Properties;
 import org.opencv.core.Mat;
 import org.opencv.dnn.Net;
 
+import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
 
 
@@ -21,10 +22,10 @@ public class SampleObjDetPlugin extends ObjDetBasePlugin {
 	}
 	
 	@Override
-    public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
+    public MLPluginFrameOutput parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
-		Map<String, Object> mapResult = new HashMap<String, Object>();
-		return mapResult;
+		MLPluginFrameOutput frameOutput = null;
+		return frameOutput;
 	}
 	
 	@Override

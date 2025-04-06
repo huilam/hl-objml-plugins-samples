@@ -20,6 +20,7 @@ import org.opencv.dnn.Net;
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.DetectedObjUtil;
 import hl.objml2.common.FrameDetectedObj;
+import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
@@ -64,8 +65,10 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-	public Map<String, Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat) {
+	public MLPluginFrameOutput parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat) {
 
+		MLPluginFrameOutput frameOutput = new MLPluginFrameOutput();
+		
 		System.out.println();
 		System.out.println(aInferenceOutputMat.get(0));
 		System.out.println(aInferenceOutputMat.get(1));		
@@ -81,11 +84,11 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	    // Annotate the image with the detected skeletons
 	    if (ANNOTATE_OUTPUT_IMG) {
 	        Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
-	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
+	        frameOutput.setAnnotatedFrameImage(matOutputImg);
 	    }
-
-	    mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
-	    return mapResult;
+	    
+	    frameOutput.setFrameDetectedObj(frameObjs);
+	    return frameOutput;
 	}
 	
 	private FrameDetectedObj groupKeypoints(Mat aMatInput, Mat matTagmap, FrameDetectedObj frameObjs)

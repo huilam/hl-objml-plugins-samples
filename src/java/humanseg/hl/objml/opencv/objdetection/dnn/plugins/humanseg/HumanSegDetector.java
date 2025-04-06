@@ -17,6 +17,7 @@ import org.opencv.imgproc.Imgproc;
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.DetectedObjUtil;
 import hl.objml2.common.FrameDetectedObj;
+import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
@@ -63,12 +64,12 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-	public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
+	public MLPluginFrameOutput parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
-		Map<String, Object> mapResult = new HashMap<String, Object>();
+		MLPluginFrameOutput frameOutput = new MLPluginFrameOutput();
 		
 		if(aInferenceOutputMat==null || aInferenceOutputMat.size()==0)
-			return mapResult;
+			return frameOutput;
 		
 		List<Mat> outputs = aInferenceOutputMat;
 		
@@ -95,12 +96,12 @@ public class HumanSegDetector extends ObjDetDnnBasePlugin {
 			if(ANNOTATE_OUTPUT_IMG)
 	        {
 				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
-				mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
+				frameOutput.setAnnotatedFrameImage(matOutputImg);
 	        }
-	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
+			frameOutput.setFrameDetectedObj(frameObjs);
 			//
         }
-		return mapResult;
+		return frameOutput;
 	}
 	
 	private static Mat doInferencePreProcess(Mat aMatInput, Size sizeInput, 

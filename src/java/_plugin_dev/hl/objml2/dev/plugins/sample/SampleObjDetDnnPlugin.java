@@ -1,9 +1,7 @@
 package hl.objml2.dev.plugins.sample;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Properties;
 
 import org.opencv.core.Mat;
@@ -11,6 +9,7 @@ import org.opencv.core.Scalar;
 import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 
+import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 
@@ -29,15 +28,15 @@ public class SampleObjDetDnnPlugin extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-    public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
+    public MLPluginFrameOutput parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
+		MLPluginFrameOutput frameOutput = null;
 		System.out.println("parseDetections()");
-		Map<String, Object> mapResult = new HashMap<String, Object>();
 		for(int i=0; i<aInferenceOutputMat.size(); i++)
 		{
 			System.out.println(i+" = "+aInferenceOutputMat.get(i));
 		}
-		return mapResult;
+		return frameOutput;
 	}
 	
 	@Override

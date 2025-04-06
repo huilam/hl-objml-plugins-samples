@@ -1,10 +1,7 @@
 package hl.objml.opencv.objdetection.dnn.plugins.yolov11;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
@@ -17,6 +14,7 @@ import org.opencv.dnn.Net;
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.DetectedObjUtil;
 import hl.objml2.common.FrameDetectedObj;
+import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 
@@ -58,9 +56,9 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-    public Map<String,Object> parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
+    public MLPluginFrameOutput parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
-		Map<String, Object> mapResult = new HashMap<String, Object>();
+		MLPluginFrameOutput frameOutput = new MLPluginFrameOutput();
 		
 		int m = 0;
 		for(Mat matOutput : aInferenceOutputMat)
@@ -109,13 +107,13 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 			if(ANNOTATE_OUTPUT_IMG)
 	        {
 				Mat matOutputImg = DetectedObjUtil.annotateImage(aMatInput, frameObjs, null, false);
-				mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_ANNOTATED_IMG, matOutputImg);
+				frameOutput.setAnnotatedFrameImage(matOutputImg);
 	        }
-	        mapResult.put(ObjDetDnnBasePlugin._KEY_OUTPUT_FRAME_DETECTIONS, frameObjs);
+			frameOutput.setFrameDetectedObj(frameObjs);
 			//
         }
         
-        return mapResult;
+        return frameOutput;
 	}
 	
 	private void decodePredictions(
