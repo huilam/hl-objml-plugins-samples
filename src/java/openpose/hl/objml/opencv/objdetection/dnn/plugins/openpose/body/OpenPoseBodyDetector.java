@@ -15,7 +15,7 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 	
 	
 	protected static boolean CALC_PAF = false;
-
+	
 	/**
 	 *  https://github.com/CMU-Perceptual-Computing-Lab/openpose
 	 *  http://vcl.snu.ac.kr/OpenPose/models/pose/pose_iter_584000.caffemodel

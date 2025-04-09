@@ -1,3 +1,7 @@
 <project name="superres" default="jar" basedir=".">
 	<import file="./base_antbuild.xml"/>
+	
+	<property name="mlmodel.download.url" value=""/>
+	<property name="mlmodel.filename" value="src/java/superres/hl/objml/opencv/imagefilters/dnn/plugins/superres/fsrcnn/FSRCNN_x4.pb"/>
+
 </project>

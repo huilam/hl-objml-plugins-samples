@@ -1,3 +1,7 @@
 <project name="humanseg" default="jar" basedir=".">
 	<import file="./base_antbuild.xml"/>
+	
+	<property name="mlmodel.download.url" value=""/>
+	<property name="mlmodel.filename" value="src/java/humanseg/hl/objml/opencv/objdetection/dnn/plugins/humanseg/human_segmentation_pphumanseg_2023mar.onnx"/>
+
 </project>

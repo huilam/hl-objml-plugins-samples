@@ -9,7 +9,7 @@
 	    <format property="buildno" pattern="yyyyMMdd-HHmm-ss"/>
 	</tstamp>
 	
-	<target name="compile" depends="clean">
+	<target name="compile" depends="download_mlmodel">
 		<echo>Clearning ${basedir} ...</echo>
 		<mkdir dir="${build}"/>
 		<javac srcdir="${src}" destdir="${build}" debug="true" source="11" target="11" 
@@ -33,6 +33,22 @@
 			<include name="version/${ant.project.name}_${buildno}"/>
 		</jar>
 	</target>
+	
+	<target name="download_mlmodel" depends="check_mlmodel" if="mlmodel.missing">
+    	<echo>Download ${mlmodel.filename} ...</echo>
+    	<get ignoreerrors="no" verbose="yes" 
+			src="${mlmodel.download.url}" 
+			dest="${mlmodel.filename}"/>
+	</target>
+	
+    <target name="check_mlmodel">
+        <available file="${mlmodel.filename}" property="mlmodel.exists"/>
+        <condition property="mlmodel.missing">
+            <not>
+                <isset property="mlmodel.exists"/>
+            </not>
+        </condition>
+    </target>
 	
 	<target name="clean">
 		<delete dir="${build}"/>

@@ -1,3 +1,7 @@
 <project name="yunet_face" default="jar" basedir=".">
 	<import file="./base_antbuild.xml"/>
+	
+	<property name="mlmodel.download.url" value=""/>
+	<property name="mlmodel.filename" value="src/java/yunet_face/hl/objml/opencv/objdetection/dnn/plugins/yunet/face/face_detection_yunet_2023mar.onnx"/>
+
 </project>
