@@ -1,0 +1,7 @@
+<project name="textdetection" default="jar" basedir=".">
+	<import file="./base_antbuild.xml"/>
+	
+	<property name="mlmodel.download.url" value="https://drive.usercontent.google.com/download?id=11Ss43NmzSHzDqv5_bHldhGW45WUeoYQu&amp;export=download&amp;authuser=0&amp;confirm=t&amp;uuid=4b764994-178d-44aa-8a5e-e725f6db27c5&amp;at=APcmpowR5OokxjT1H2V4XlGsKPio:1744209634853"/>
+	<property name="mlmodel.filename" value="src/java/textdetection/hl/objml/opencv/objdetection/dnn/plugins/dbtext/DB_TD500_resnet50.onnx"/>
+
+</project>

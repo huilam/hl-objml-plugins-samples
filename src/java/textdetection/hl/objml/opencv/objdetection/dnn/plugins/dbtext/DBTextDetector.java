@@ -43,7 +43,7 @@ public class DBTextDetector extends ObjDetBasePlugin {
         Scalar mean = new Scalar(122.67891434, 116.66876762, 104.00698793);
         textDetector.setInputParams(1.0 / 255.0, inputSize, mean, true);
         
-		return null;
+		return new ArrayList<Mat>();
 	}
 	
 	@Override
