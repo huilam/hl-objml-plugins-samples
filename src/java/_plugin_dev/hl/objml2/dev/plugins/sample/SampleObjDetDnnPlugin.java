@@ -2,13 +2,13 @@ package hl.objml2.dev.plugins.sample;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Properties;
 
 import org.opencv.core.Mat;
 import org.opencv.core.Scalar;
 import org.opencv.dnn.Dnn;
 import org.opencv.dnn.Net;
 
+import hl.objml2.plugin.MLPluginConfigProp;
 import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
@@ -40,7 +40,7 @@ public class SampleObjDetDnnPlugin extends ObjDetDnnBasePlugin {
 	}
 	
 	@Override
-	public Properties prePropInit(Properties aProps) 
+	public MLPluginConfigProp prePropInit(MLPluginConfigProp aProps) 
 	{
 		return aProps;
 	}

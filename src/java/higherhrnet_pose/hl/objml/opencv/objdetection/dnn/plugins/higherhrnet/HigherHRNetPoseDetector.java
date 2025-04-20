@@ -20,6 +20,7 @@ import org.opencv.dnn.Net;
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.DetectedObjUtil;
 import hl.objml2.common.FrameDetectedObj;
+import hl.objml2.plugin.MLPluginConfigProp;
 import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetDnnBasePlugin;
 import hl.opencv.util.OpenCvUtil;
@@ -203,7 +204,7 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 
 	
 	@Override
-	public Properties prePropInit(Properties aProps) 
+	public MLPluginConfigProp prePropInit(MLPluginConfigProp aProps) 
 	{
 		return aProps;
 	}

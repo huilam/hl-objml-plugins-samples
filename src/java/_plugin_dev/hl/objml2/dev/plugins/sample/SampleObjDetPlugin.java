@@ -1,13 +1,11 @@
 package hl.objml2.dev.plugins.sample;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Properties;
 import org.opencv.core.Mat;
 import org.opencv.dnn.Net;
 
+import hl.objml2.plugin.MLPluginConfigProp;
 import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
 
@@ -29,7 +27,7 @@ public class SampleObjDetPlugin extends ObjDetBasePlugin {
 	}
 	
 	@Override
-	public Properties prePropInit(Properties aProps) 
+	public MLPluginConfigProp prePropInit(MLPluginConfigProp aProps) 
 	{
 		return aProps;
 	}
