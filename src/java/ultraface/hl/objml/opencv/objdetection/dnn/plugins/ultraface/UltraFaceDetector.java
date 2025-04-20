@@ -96,8 +96,8 @@ public class UltraFaceDetector extends ObjDetDnnBasePlugin {
 		        	
 		            Rect2d box 			= outputBoxes.get(idx);
 		            int classId 		= outputClassIds.get(idx);
-		            String classLabel 	= OBJ_CLASSESS.get(classId);
 		            Float confScore 	= outputConfidences.get(idx);
+		            String classLabel 	= getObjClassLabel(classId);
 		            
 		            DetectedObj obj = new DetectedObj(classId, classLabel, box, confScore);
 		            frameObjs.addDetectedObj(obj);

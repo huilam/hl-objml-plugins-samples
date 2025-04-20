@@ -32,7 +32,7 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 		
 	    Mat reshapedMat = matResult.reshape(1, new int[]{matResult.size(1), matResult.size(2), matResult.size(3)});
 		
-      	int iKP = super.OBJ_CLASSESS.size(); //25
+      	int iKP = super.getObjClassesOfInterest().length; //25
       	int iPAF = reshapedMat.size(0)-iKP;
 		int iH = reshapedMat.size(1);
 		int iW = reshapedMat.size(2);
@@ -43,7 +43,8 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 		aDetectedObjs = extractKeypoints(reshapedMat, aMatInput, aDetectedObjs, aConfidenceThreshold);
 		if(CALC_PAF)
 		{
-			aDetectedObjs = calcPAFs(reshapedMat, aDetectedObjs, OBJ_PAF_LIST);	
+			aDetectedObjs = calcPAFs(reshapedMat, aDetectedObjs, 
+					super.getSupportedObjectPAFs());	
 		}
 		
     	ANNOTATE_OUTPUT_IMG = true;
@@ -56,7 +57,7 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
     		,List<DetectedObj> aDetectedObjs
 	        ,final double aConfidenceThreshold)
     {
-    	int iKP = super.OBJ_CLASSESS.size(); //25
+    	int iKP = super.getObjClassesOfInterest().length; //25
       	int iPAF = aReshapedMat.size(0)-iKP;
 		int iH = aReshapedMat.size(1);
 		int iW = aReshapedMat.size(2);
@@ -87,7 +88,7 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 	            int x = (int) (pt.x * scaleX);
 	            int y = (int) (pt.y * scaleY);
 
-	            String label = OBJ_CLASSESS.get(i);
+	            String label = getObjClassLabel(i);
 	            DetectedObj obj = new DetectedObj(i, label, new Point(x,y), confidence);
 	            
 	            System.out.println(obj);

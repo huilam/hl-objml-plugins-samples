@@ -98,7 +98,7 @@ public class YoloXDetector extends ObjDetDnnBasePlugin {
 	        	
 	            Rect2d box 			= outputBoxes.get(idx);
 	            int classId 		= outputClassIds.get(idx);
-	            String classLabel 	= OBJ_CLASSESS.get(classId);
+	            String classLabel 	= getObjClassLabel(classId);
 	            Float confScore 	= outputConfidences.get(idx);
 	            
 	            DetectedObj obj = new DetectedObj(classId, classLabel, box, confScore);
@@ -223,17 +223,6 @@ public class YoloXDetector extends ObjDetDnnBasePlugin {
         }
         return indices.toArray();
 
-	}
-
-	private boolean isObjOfInterest(int aObjClassId)
-	{
-		String sObjClassName = OBJ_CLASSESS.get(aObjClassId);
-		return isObjOfInterest(sObjClassName);
-	}
-	
-	private boolean isObjOfInterest(String aObjClassName)
-	{
-		return super.isObjClassOfInterest(aObjClassName);
 	}
 
 	private void decodePredictions(

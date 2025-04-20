@@ -167,7 +167,7 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
                 Point peak = minMaxLocResult.maxLoc;
                 double x = peak.x * dScaleW;
                 double y = peak.y * dScaleH;
-                String label = OBJ_CLASSESS.get(i);
+                String label = getObjClassLabel(i);
                 
             	DetectedObj obj = new DetectedObj(i, label, new Point(x,y), confidence);
                 aDetectedObj.add(obj);

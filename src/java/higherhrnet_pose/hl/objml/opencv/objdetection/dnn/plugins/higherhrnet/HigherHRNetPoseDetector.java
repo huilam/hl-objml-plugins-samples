@@ -151,7 +151,7 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	        	
 	            // Calculate the confidence score for this keypoint
 	            double confScore = heatmap.get(iY, iX)[0];
-                String objLabel = OBJ_CLASSESS.get(i);
+                String objLabel = getObjClassLabel(i);
                 
                 //get TagValue
                 int iKpIdx = i * 2; //tagMap 34 = keypoint 17

@@ -2,9 +2,7 @@ package hl.objml.opencv.objdetection.dnn.plugins.yunet.face;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
 import org.opencv.core.Rect;
@@ -19,7 +17,6 @@ import hl.objml2.common.DetectedObjUtil;
 import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
-import hl.objml2.plugin.ObjDetDnnBasePlugin;
 import hl.opencv.util.OpenCvUtil;
 
 public class YunetFaceDetector extends ObjDetBasePlugin {

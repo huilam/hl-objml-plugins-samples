@@ -156,7 +156,7 @@ public class BaseOpenPoseDetector extends ObjDetDnnBasePlugin {
 	{
 		List<DetectedObj> aDetectedObjs = new ArrayList<DetectedObj>();
 		
-		int iKP = super.OBJ_CLASSESS.size(); //25
+		int iKP = super.getObjClassesOfInterest().length; //25
       	int iPAF = aMatReshaped.size(0)-iKP;
 		
       	

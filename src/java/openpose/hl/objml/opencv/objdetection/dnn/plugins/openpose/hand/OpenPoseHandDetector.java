@@ -28,7 +28,7 @@ public class OpenPoseHandDetector extends BaseOpenPoseDetector {
 
 		//1*22*46*46*CV_32FC1
 		
-    	int iKP = super.OBJ_CLASSESS.size();
+    	int iKP = super.getObjClassesOfInterest().length;
 
 	    Mat reshapedMat = matResult.reshape(1, new int[]{matResult.size(1), matResult.size(2), matResult.size(3)});
 		
@@ -57,7 +57,7 @@ public class OpenPoseHandDetector extends BaseOpenPoseDetector {
 	            int x = (int) (pt.x * scaleX);
 	            int y = (int) (pt.y * scaleY);
 
-	            String label = OBJ_CLASSESS.get(i);
+	            String label = getObjClassLabel(i);
 	            DetectedObj obj = new DetectedObj(i, label, new Point(x,y), confidence);
 	            
 	            System.out.println(obj);
