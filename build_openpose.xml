@@ -1,7 +1,0 @@
-<project name="openpose" default="jar" basedir=".">
-	<import file="./base_antbuild.xml"/>
-	
-	<property name="mlmodel.download.url" value="https://drive.usercontent.google.com/u/0/uc?id=1uG76z7QKbDzsp2-_8Sf0QQeQYs5qBqr1&amp;export=download"/>
-	<property name="mlmodel.filename" value="src/java/openpose/hl/objml/opencv/objdetection/dnn/plugins/openpose/body/pose_iter_584000.caffemodel"/>
-
-</project>
