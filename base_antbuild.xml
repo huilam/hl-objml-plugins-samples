@@ -19,7 +19,7 @@
 		</javac>
 	</target>
 		
-	<target name="jar" depends="compile">
+	<target name="jar" depends="compile, set_jar_suffix">
 		<delete dir="${build}">
 			<include name="**/hl-objml-plugin_${ant.project.name}_**.jar"/>
 		</delete>
@@ -29,12 +29,26 @@
 			<exclude name="**/dev/"/>
 		</copydir>
 		
+		
 		<jar jarfile="${build}/hl-objml-plugin_${ant.project.name}${jar_suffix}_jdk11_${buildno}.jar" basedir="${build}">
 			<include name="**/*.*"/>
 			<exclude name="${exclude.packages}"/>
 			<include name="version/${ant.project.name}_${buildno}"/>
 		</jar>
 	</target>
+	
+	<target name="check_module_name">
+		<condition property="no_jar_suffix">
+            <not>
+                <isset property="mlmodel.module"/>
+            </not>
+		</condition>
+	</target>
+	
+	<target name="set_jar_suffix" depends="check_module_name" if="${no_jar_suffix}">
+		<property name="jar_suffix" value=""/>
+	</target>
+
 	
 	<target name="download_mlmodel" depends="check_mlmodel" if="mlmodel.missing">
     	<echo>Download ${mlmodel.filename} ...</echo>
