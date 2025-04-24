@@ -68,14 +68,6 @@ public class Upscale extends ObjDetBasePlugin {
 		if(matOutput!=null)
 		{
 			frameOutput.setAnnotatedFrameImage(matOutput);
-			//
-			FrameDetectionMeta meta = new FrameDetectionMeta();
-			meta.setConfidence_threshold(getConfidenceThreshold());
-			meta.setNms_threshold(getNMSThreshold());
-			meta.setObjml_model_name(getModelFileName());
-			meta.setObjml_plugin_name(getPluginName());
-			frameOutput.setFrameDetectionMeta(meta);
-			//
 		}
 		
 		return frameOutput;

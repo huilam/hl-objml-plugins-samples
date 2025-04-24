@@ -81,13 +81,6 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	        if(matOutput!=null)
 	        {
 	        	frameOutput.setAnnotatedFrameImage(matOutput.clone());
-				//
-				FrameDetectionMeta meta = new FrameDetectionMeta();
-				meta.setObjml_model_name(getModelFileName());
-				meta.setObjml_plugin_name(getPluginName());
-				
-				frameOutput.setFrameDetectionMeta(meta);
-				//
 	        }
 	        
 		}finally
