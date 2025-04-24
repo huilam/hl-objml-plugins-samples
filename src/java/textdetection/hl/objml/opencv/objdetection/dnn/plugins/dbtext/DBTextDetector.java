@@ -12,7 +12,6 @@ import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextDetectionModel_DB;
 import org.opencv.imgproc.Imgproc;
 
-import hl.objml2.common.FrameDetectionMeta;
 import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
 import hl.opencv.util.OpenCvUtil;

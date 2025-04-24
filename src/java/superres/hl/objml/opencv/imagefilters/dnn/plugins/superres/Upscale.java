@@ -9,7 +9,6 @@ import org.opencv.core.Mat;
 import org.opencv.dnn.Net;
 import org.opencv.dnn_superres.DnnSuperResImpl;
 
-import hl.objml2.common.FrameDetectionMeta;
 import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
 
