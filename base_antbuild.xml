@@ -4,6 +4,7 @@
 	<property name="build" location="build/${ant.project.name}"/>
 	<property name="lib" location="lib"/>
 	<property name="releases" location="releases"/>
+	<property name="jdk.ver" value="17"/>
 	
 	<tstamp>
 	    <format property="buildno" pattern="yyyyMMdd-HHmm-ss"/>
@@ -12,7 +13,7 @@
 	<target name="compile" depends="download_mlmodel">
 		<echo>Clearning ${basedir} ...</echo>
 		<mkdir dir="${build}"/>
-		<javac srcdir="${src}" destdir="${build}" debug="true" source="11" target="11" 
+		<javac srcdir="${src}" destdir="${build}" debug="true" source="${jdk.ver}" target="${jdk.ver}" 
 			excludes="**/dev/"
 			includeantruntime="false">
 			<classpath refid="compile.classpath"/>
@@ -30,7 +31,7 @@
 		</copydir>
 		
 		
-		<jar jarfile="${build}/hl-objml-plugin_${ant.project.name}${jar_suffix}_jdk11_${buildno}.jar" basedir="${build}">
+		<jar jarfile="${build}/hl-objml-plugin_${ant.project.name}${jar_suffix}_jdk${jdk.ver}_${buildno}.jar" basedir="${build}">
 			<include name="**/*.*"/>
 			<exclude name="${exclude.packages}"/>
 			<include name="version/${ant.project.name}_${buildno}"/>
