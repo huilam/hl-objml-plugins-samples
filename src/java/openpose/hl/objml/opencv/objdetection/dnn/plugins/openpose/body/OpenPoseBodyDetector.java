@@ -37,8 +37,8 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 		int iH = reshapedMat.size(1);
 		int iW = reshapedMat.size(2);
 		
-		System.out.println("iKP="+iKP+", iPAF="+iPAF);
-		System.out.println("iH="+iH+", iW="+iW);
+		//System.out.println("iKP="+iKP+", iPAF="+iPAF);
+		//System.out.println("iH="+iH+", iW="+iW);
 		
 		aDetectedObjs = extractKeypoints(reshapedMat, aMatInput, aDetectedObjs, aConfidenceThreshold);
 		if(CALC_PAF)
@@ -57,13 +57,15 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
     		,List<DetectedObj> aDetectedObjs
 	        ,final double aConfidenceThreshold)
     {
-    	int iKP = super.getObjClassesOfInterest().length; //25
+    	int iKP = super.getSupportedObjectLabels().length; //25
       	int iPAF = aReshapedMat.size(0)-iKP;
 		int iH = aReshapedMat.size(1);
 		int iW = aReshapedMat.size(2);
 		
-		System.out.println("iKP="+iKP+", iPAF="+iPAF);
-		System.out.println("iH="+iH+", iW="+iW);
+		System.out.println("getObjClassesOfInterest().length="+super.getSupportedObjectLabels().length);
+		
+		//System.out.println("iKP="+iKP+", iPAF="+iPAF);
+		//System.out.println("iH="+iH+", iW="+iW);
 		
     	double scaleX = (double) aMatInput.width() / iW;
 	    double scaleY = (double) aMatInput.height() / iH;
@@ -75,7 +77,7 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 		    Mat heatMap = aReshapedMat.row(i);
 		    heatMap = heatMap.reshape(1, iH);  // Reshape to 2D (46x46)
 		    
-		    System.out.println("heatMap--->"+heatMap);
+		    //System.out.println("heatMap--->"+heatMap);
 		    
 		    Map<Point, Float> mapTopDetections = 
 		    		DetectedObjUtil.getTopDetectionsFor2DMat(1, heatMap, aConfidenceThreshold);
@@ -91,8 +93,7 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 	            String label = getObjClassLabel(i);
 	            DetectedObj obj = new DetectedObj(i, label, new Point(x,y), confidence);
 	            
-	            System.out.println(obj);
-	            
+	            //System.out.println(obj);
 	            aDetectedObjs.add(obj);
 	        }
 		    

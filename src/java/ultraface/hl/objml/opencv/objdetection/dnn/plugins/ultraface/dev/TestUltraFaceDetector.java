@@ -8,7 +8,7 @@ public class TestUltraFaceDetector extends BaseTester {
 	public static void main(String[] args)
 	{
 		BaseTester test = new BaseTester();
-		test.setTestImageFolder("./test/images/temp");
+		test.setTestImageFolder("./test/images/internet/person");
 		test.testDetector(new UltraFaceDetector());
 	}
 }

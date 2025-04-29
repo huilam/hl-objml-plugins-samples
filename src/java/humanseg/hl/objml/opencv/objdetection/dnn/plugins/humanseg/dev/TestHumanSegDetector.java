@@ -8,7 +8,7 @@ public class TestHumanSegDetector extends BaseTester {
 	public static void main(String[] args)
 	{
 		BaseTester test = new BaseTester();
-		test.setTestImageFolder("./test/images/internet");
+		test.setTestImageFolder("./test/images/coco");
 		//
 		test.testDetector(new HumanSegDetector());
 	}
