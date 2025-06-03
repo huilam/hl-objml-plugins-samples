@@ -29,6 +29,8 @@ import hl.opencv.util.OpenCvUtil;
 @SuppressWarnings("unused")
 public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	
+    private static final double TAG_GROUPING_THRESHOLD = 1.0; // tune as needed!
+    
 	private static boolean CROP_IMAGE 			= false;
 	private static boolean SWAP_RB 				= true;
     private static boolean ANNOTATE_OUTPUT_IMG 	= true;
@@ -92,33 +94,51 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 	    return frameOutput;
 	}
 	
-	private FrameDetectedObj groupKeypoints(Mat aMatInput, Mat matTagmap, FrameDetectedObj frameObjs)
-	{
-	    int iKpCount 	= matTagmap.size(1);  // Number of keypoints 
-	    int iHeight 	= matTagmap.size(2);  // Heatmap height
-	    int iWidth 		= matTagmap.size(3);  // Heatmap width
-		
-	    // Reshape the matTagmap to (34 x 80 x 120)
-	    matTagmap = matTagmap.reshape(1, new int[]{iKpCount, iHeight, iWidth});
-	    
-	    Map<Double, DetectedObj> mapDetectedObj = new TreeMap<>();
-	    
-	    for(String sObjClassName : frameObjs.getObjClassNames())
-	    {
-		    List<DetectedObj> listObj = frameObjs.getDetectedObjByObjClassName(sObjClassName);
-		    System.out.print(" "+sObjClassName+" ("+listObj.size()+")");
-	    	for(DetectedObj obj : listObj)
-	    	{
-	    		double dTagValue = Double.parseDouble(obj.getObj_trackingid());
-	    		
-	    		System.out.printf("   - %.8f\n",dTagValue);
-                mapDetectedObj.put(dTagValue, obj);
-	    	}
+	private FrameDetectedObj groupKeypoints(Mat aMatInput, Mat matTagmap, FrameDetectedObj frameObjs) {
+	    // Collect all detected keypoints and their tag values
+	    List<DetectedObj> allKeypoints = new ArrayList<>();
+	    for (String sObjClassName : frameObjs.getObjClassNames()) {
+	        allKeypoints.addAll(frameObjs.getDetectedObjByObjClassName(sObjClassName));
 	    }
-    	
-	    
-		//TODO
-		return frameObjs;
+	    // Each "person" will be a list of DetectedObj, mapped by personID
+	    List<List<DetectedObj>> groupedPersons = new ArrayList<>();
+
+	    for (DetectedObj kp : allKeypoints) {
+	        double tagValue = Double.parseDouble(kp.getObj_trackingid());
+	        boolean assigned = false;
+
+	        // Try to assign this keypoint to an existing group (person)
+	        for (List<DetectedObj> person : groupedPersons) {
+	            // Take the mean tag of the current person
+	            double meanTag = person.stream()
+	                .mapToDouble(obj -> Double.parseDouble(obj.getObj_trackingid()))
+	                .average().orElse(tagValue);
+	            if (Math.abs(tagValue - meanTag) < TAG_GROUPING_THRESHOLD) {
+	                person.add(kp);
+	                assigned = true;
+	                break;
+	            }
+	        }
+	        // If not assigned to any group, create a new person group
+	        if (!assigned) {
+	            List<DetectedObj> newPerson = new ArrayList<>();
+	            newPerson.add(kp);
+	            groupedPersons.add(newPerson);
+	        }
+	    }
+
+	    // Build the output FrameDetectedObj with grouped persons and their keypoints
+	    FrameDetectedObj groupedFrameObjs = new FrameDetectedObj();
+	    int personIdx = 0;
+	    for (List<DetectedObj> person : groupedPersons) {
+	        // Optionally, set a group/person id in DetectedObj (for tracking)
+	        for (DetectedObj obj : person) {
+	            obj.setObj_trackingid("person" + personIdx);
+	            groupedFrameObjs.addDetectedObj(obj);
+	        }
+	        personIdx++;
+	    }
+	    return groupedFrameObjs;
 	}
 	
 	private FrameDetectedObj getAllKeyPoints(Mat aMatInput, Mat matHeatmap, Mat matTagmap)
