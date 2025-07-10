@@ -22,6 +22,11 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 	
     private static boolean ANNOTATE_OUTPUT_IMG 		= true;
 
+    public int getTotalObjClsCount()
+    {
+    	return 80;
+    }
+    
 	/**
 	 *
 	 */
@@ -123,10 +128,13 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
 	        final double aConfidenceThreshold) {
 	    
+		
+System.out.println("decodePredictions-matResult="+matResult);
+		
 		// matResult=Mat [ 1*84*8400*CV_32FC1]
 		int totalAnchors = matResult.size(2);
 		
-		matResult = matResult.reshape(1, new int[] {84, totalAnchors});
+		matResult = matResult.reshape(1, new int[] {getTotalObjClsCount()+4, totalAnchors});
 		Core.transpose(matResult, matResult); //swap
 	    
 		for (int i = 0; i < matResult.rows(); i++) 
