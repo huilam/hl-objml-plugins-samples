@@ -21,10 +21,15 @@ import hl.objml2.plugin.ObjDetDnnBasePlugin;
 public class YoloV11Detector extends ObjDetDnnBasePlugin {
 	
     private static boolean ANNOTATE_OUTPUT_IMG 		= true;
+    private int total_obj_count = -1;
 
     public int getTotalObjClsCount()
     {
-    	return 80;
+    	if(total_obj_count <0)
+    	{
+    		total_obj_count = getSupportedObjLabels().length;
+    	}
+    	return total_obj_count;
     }
     
 	/**
