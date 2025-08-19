@@ -20,8 +20,9 @@ import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 public class YoloV11Detector extends ObjDetDnnBasePlugin {
 	
-    private static boolean ANNOTATE_OUTPUT_IMG 		= true;
-    private int total_obj_count = -1;
+    private static boolean ANNOTATE_OUTPUT_IMG 	= true;
+    
+    private int total_obj_count 		= -1;
 
     public int getTotalObjClsCount()
     {
@@ -31,7 +32,6 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
     	}
     	return total_obj_count;
     }
-    
 	/**
 	 *
 	 */
@@ -132,20 +132,26 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 	        final double aScaleH,
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
 	        final double aConfidenceThreshold) {
-	    
 		
 System.out.println("decodePredictions-matResult="+matResult);
-		
 		// matResult=Mat [ 1*84*8400*CV_32FC1]
+
+		int objClassInfo = matResult.size(1);
 		int totalAnchors = matResult.size(2);
 		
-		matResult = matResult.reshape(1, new int[] {getTotalObjClsCount()+4, totalAnchors});
+		matResult = matResult.reshape(1, new int[] {objClassInfo, totalAnchors});
 		Core.transpose(matResult, matResult); //swap
+		
+		int iEndCol = matResult.cols();
+		if(matResult.cols()>getTotalObjClsCount()+4)
+		{
+			iEndCol -= 32;
+		}
 	    
 		for (int i = 0; i < matResult.rows(); i++) 
 		{
 		    Mat row = matResult.row(i);
-		    Mat scores = row.colRange(4, matResult.cols());
+		    Mat scores = row.colRange(4, iEndCol);
 		    Core.MinMaxLocResult mm = Core.minMaxLoc(scores);
 		    float confidence = (float) mm.maxVal;
 		    
