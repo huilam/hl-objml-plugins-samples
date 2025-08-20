@@ -62,7 +62,7 @@ public class OpenPoseBodyDetector extends BaseOpenPoseDetector {
 		int iH = aReshapedMat.size(1);
 		int iW = aReshapedMat.size(2);
 		
-		System.out.println("getObjClassesOfInterest().length="+super.getSupportedObjectLabels().length);
+		//System.out.println("getObjClassesOfInterest().length="+super.getSupportedObjectLabels().length);
 		
 		//System.out.println("iKP="+iKP+", iPAF="+iPAF);
 		//System.out.println("iH="+iH+", iW="+iW);
