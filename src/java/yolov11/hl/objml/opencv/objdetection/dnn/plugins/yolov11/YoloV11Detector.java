@@ -3,6 +3,7 @@ package hl.objml.opencv.objdetection.dnn.plugins.yolov11;
 import java.util.ArrayList;
 import java.util.List;
 import org.opencv.core.Core;
+import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfFloat;
 import org.opencv.core.MatOfInt;
@@ -20,8 +21,18 @@ import hl.objml2.plugin.ObjDetDnnBasePlugin;
 
 public class YoloV11Detector extends ObjDetDnnBasePlugin {
 	
-    private static boolean ANNOTATE_OUTPUT_IMG 		= true;
+    private static boolean ANNOTATE_OUTPUT_IMG 	= true;
+    
+    private int total_obj_count 		= -1;
 
+    public int getTotalObjClsCount()
+    {
+    	if(total_obj_count <0)
+    	{
+    		total_obj_count = getSupportedObjLabels().length;
+    	}
+    	return total_obj_count;
+    }
 	/**
 	 *
 	 */
@@ -79,10 +90,11 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
         List<Rect2d> outputBoxes 		= new ArrayList<>();
         List<Float> outputConfidences 	= new ArrayList<>();
         List<Integer> outputClassIds 	= new ArrayList<>();
+        List<float[]> outputMask		= new ArrayList<>();
         //
         decodePredictions(matResult, 
         		scaleOrgW, scaleOrgH,  
-        		outputBoxes, outputConfidences, outputClassIds, 
+        		outputBoxes, outputConfidences, outputClassIds, outputMask,
         		fConfidenceThreshold);
         //
         if(outputBoxes.size()>0)
@@ -98,6 +110,14 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 	            int classId 		= outputClassIds.get(idx);
 	            String classLabel 	= getObjClassLabel(classId);
 	            Float confScore 	= outputConfidences.get(idx);
+	            
+	            if(outputMask.size()>idx)
+	            {
+	            	//TODO: Pending decode of Mask
+	            	float[] maskCoeffs 	= outputMask.get(idx);
+	                //Mat coeffMat = new Mat(1, 32, CvType.CV_32F);
+	                //coeffMat.put(0, 0, maskCoeffs);
+	            }
 	            
 	            DetectedObj obj = new DetectedObj(classId, classLabel, box, confScore);
 	            frameObjs.addDetectedObj(obj);
@@ -121,18 +141,30 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 	        final double aScaleW,
 	        final double aScaleH,
 	        List<Rect2d> boxes, List<Float> confidences, List<Integer> classIds,
+	        List<float[]> outputMask,
 	        final double aConfidenceThreshold) {
-	    
+		
+System.out.println("decodePredictions-matResult="+matResult);
 		// matResult=Mat [ 1*84*8400*CV_32FC1]
+
+		int objClassInfo = matResult.size(1);
 		int totalAnchors = matResult.size(2);
 		
-		matResult = matResult.reshape(1, new int[] {84, totalAnchors});
+		matResult = matResult.reshape(1, new int[] {objClassInfo, totalAnchors});
 		Core.transpose(matResult, matResult); //swap
+		
+		boolean isIncludeSegMask = (matResult.cols()>getTotalObjClsCount()+4);
+		
+		int iEndCol = matResult.cols();
+		if(isIncludeSegMask)
+		{
+			iEndCol -= 32;
+		}
 	    
 		for (int i = 0; i < matResult.rows(); i++) 
 		{
 		    Mat row = matResult.row(i);
-		    Mat scores = row.colRange(4, matResult.cols());
+		    Mat scores = row.colRange(4, iEndCol);
 		    Core.MinMaxLocResult mm = Core.minMaxLoc(scores);
 		    float confidence = (float) mm.maxVal;
 		    
@@ -161,6 +193,15 @@ public class YoloV11Detector extends ObjDetDnnBasePlugin {
 		            classIds.add(classId);
 		            confidences.add(confidence);
 		            boxes.add(new Rect2d(lLeft , lTop, lWidth, lHeight));
+		            
+		            // Save 32 mask coeffs if available
+		            if (isIncludeSegMask) {
+		            	Mat matMask = row.colRange(4+ getTotalObjClsCount(), objClassInfo);
+		            	
+		            	float[] coeff = new float[32];
+		            	matMask.get(0, 32, coeff);
+		            	outputMask.add(coeff);
+		            }
 				}
 		    }
 		}
