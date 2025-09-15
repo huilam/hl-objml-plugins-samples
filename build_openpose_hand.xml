@@ -7,7 +7,7 @@
 	<property name="mlmodel.path" value="${src}/hl/objml/opencv/objdetection/dnn/plugins/openpose/${mlmodel.module}"/>
 	<property name="jar_suffix" value="_${mlmodel.module}"/>
 	
-	<property name="mlmodel.download.url" value="https://drive.usercontent.google.com/u/0/uc?id=1uG76z7QKbDzsp2-_8Sf0QQeQYs5qBqr1&amp;export=download"/>
+	<property name="mlmodel.download.url" value="https://huggingface.co/huilam/hl-objml-plugins-samples/resolve/main/openpose/hand21/pose_iter_102000.caffemodel?download=true"/>
 	<property name="mlmodel.filename" value="${mlmodel.path}/pose_iter_102000.caffemodel"/>
 
 </project>
