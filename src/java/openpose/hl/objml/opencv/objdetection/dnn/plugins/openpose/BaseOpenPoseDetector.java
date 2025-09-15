@@ -23,6 +23,7 @@ public class BaseOpenPoseDetector extends ObjDetDnnBasePlugin {
 	protected static boolean SWAP_RB_CHANNEL		= false;
     protected static boolean APPLY_IMG_PADDING 		= false;
     protected static boolean ANNOTATE_OUTPUT_IMG 	= true;
+    protected static boolean OUTPUT_DNN_MAT_LIST 	= true;
 
 	/**
 	 *  https://github.com/CMU-Perceptual-Computing-Lab/openpose
@@ -97,6 +98,12 @@ public class BaseOpenPoseDetector extends ObjDetDnnBasePlugin {
 			frameOutput.setFrameDetectedObj(frameObjs);
 			//
         }
+        
+        if(OUTPUT_DNN_MAT_LIST)
+        {
+        	frameOutput.setDnnOutputMatList(outputs);
+        }
+        
 		return frameOutput;
 	}
 	
