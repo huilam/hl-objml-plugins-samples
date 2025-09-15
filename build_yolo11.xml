@@ -2,7 +2,7 @@
 	
 	<import file="./base_antbuild.xml"/>
 
-	<property name="mlmodel.download.url" value="https://drive.usercontent.google.com/download?id=1bndqYNGpFPsjNkk9_QHWR0vFYeW74FUY"/>
+	<property name="mlmodel.download.url" value="https://huggingface.co/huilam/hl-objml-plugins-samples/resolve/main/yolo/yolo11m.onnx?download=true"/>
 	<property name="mlmodel.filename" value="src/java/yolov11/hl/objml/opencv/objdetection/dnn/plugins/yolov11/yolo11m.onnx"/>
 
 </project>

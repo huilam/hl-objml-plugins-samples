@@ -1,7 +1,7 @@
 <project name="vitpose" default="jar" basedir=".">
 	<import file="./base_antbuild.xml"/>
 	
-	<property name="mlmodel.download.url" value="https://drive.usercontent.google.com/download?id=1mFNTPBkLMNrNNc_6xnE2aG2rAaeLOqp4&amp;confirm=t&amp;uuid=a4cd21e1-2ac7-435c-9c67-076d417a9431&amp;at=APcmpoycz0YExdiram8Fd2OJhoON%3A1744208829684"/>
+	<property name="mlmodel.download.url" value="https://huggingface.co/huilam/hl-objml-plugins-samples/resolve/main/vitpose/vitpose-b-coco_25.onnx?download=true"/>
 	<property name="mlmodel.filename" value="src/java/vitpose/hl/objml/opencv/objdetection/dnn/plugins/vitpose/vitpose-b-coco_25.onnx"/>
 
 </project>
