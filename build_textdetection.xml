@@ -2,6 +2,6 @@
 	<import file="./base_antbuild.xml"/>
 	
 	<property name="mlmodel.download.url" value="https://huggingface.co/huilam/hl-objml-plugins-samples/resolve/main/textdetection/DB_TD500_resnet50.onnx?download=true"/>
-	<property name="mlmodel.filename" value="src/java/textdetection/hl/objml/opencv/objdetection/dnn/plugins/dbtext/DB_TD500_resnet50.onnx"/>
+	<property name="mlmodel.filename" value="src/java/textdetection/hl/objml/opencv/objdetection/dnn/plugins/text/detect/DB_TD500_resnet50.onnx"/>
 
 </project>
