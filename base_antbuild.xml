@@ -57,7 +57,12 @@
 			src="${mlmodel.download.url}" dest="${mlmodel.filename}"/>
 	</target>
 	
-    <target name="check_mlmodel">
+	<target name="display_os">
+	    <echo>OS=${os.name} ${os.version}</echo>
+	    <echo>Arch=${os.arch}</echo>
+	</target>
+	
+    <target name="check_mlmodel" depends="display_os">
         <available file="${mlmodel.filename}" property="mlmodel.exists"/>
         <condition property="mlmodel.missing">
             <not>
