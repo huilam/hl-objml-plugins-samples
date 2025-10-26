@@ -1,11 +1,13 @@
 package hl.objml.opencv.objdetection.dnn.plugins.text.detect;
 
-import java.awt.Graphics2D;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
+import org.opencv.core.MatOfRotatedRect;
+import org.opencv.core.Point;
+import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Net;
@@ -38,13 +40,18 @@ public class DBTextDetector extends ObjDetBasePlugin {
         if(textDetector==null)
         {        
         	textDetector = new TextDetectionModel_DB(fileModel.getAbsolutePath());
+        	
+            // Set the input parameters
+            Size inputSize = getImageInputSize();
+            
+            Scalar mean = new Scalar(122.67891434, 116.66876762, 104.00698793);
+            textDetector.setInputParams(1.0 / 255.0, inputSize, mean, true);
+            textDetector.setInputCrop(true);
+            
+            textDetector.setPreferableBackend(getDnnBackend());
+	        textDetector.setPreferableTarget(getDnnTarget());
 	    }
         
-        // Set the input parameters
-        Size inputSize = getImageInputSize();
-        
-        Scalar mean = new Scalar(122.67891434, 116.66876762, 104.00698793);
-        textDetector.setInputParams(1.0 / 255.0, inputSize, mean, true);
         
 		return new ArrayList<Mat>();
 	}
@@ -64,24 +71,34 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	        OpenCvUtil.removeAlphaChannel(matOutput);
 	        
 	        // Perform text detection
-	        textDetector.setPreferableBackend(getDnnBackend());
-	        textDetector.setPreferableTarget(getDnnTarget());
-	        List<MatOfPoint> detections = new ArrayList<MatOfPoint>();
-	        textDetector.detect(matOutput, detections);
-        	
+	        MatOfRotatedRect rects = new MatOfRotatedRect();
+	        textDetector.detectTextRectangles(matOutput, rects);
+	        
+	        List<MatOfPoint> polygons = new ArrayList<>();
+	        
+	        List<RotatedRect> detections = rects.toList();
 	        if(detections.size()>0)
 	        {
 	        	FrameDetectedObj detectedObjs = new FrameDetectedObj();
 	        	
 		        // Draw detections on the image
-		        for (MatOfPoint contour : detections) 
+		        for (RotatedRect rotatedRect : detections) 
 		        {
-		        	detectedObjs.addDetectedObj(new DetectedObj(0, "text", contour, 1.0));
-		        	if(ANNOTATE_OUTPUT_IMG)
-		            {
-		        		 Imgproc.polylines(matOutput, List.of(contour), true, new Scalar(0, 255, 0), 2);
-		            }
+		        	//if(rotatedRect.size.area()<20)
+		        	//	continue;
+		        	
+		        	Point[] ptRect = new Point[4];
+		        	rotatedRect.points(ptRect);
+		        	
+		        	MatOfPoint pts = new MatOfPoint(ptRect);
+		            polygons.add(pts);
+		            
+		            detectedObjs.addDetectedObj(new DetectedObj(0, "text", pts, 1.0d));
 		        }
+		        if(ANNOTATE_OUTPUT_IMG && polygons.size()>0)
+	            {
+	            	Imgproc.polylines(matOutput, polygons, true, new Scalar(0, 255, 0), 2);
+	            }
 	        	frameOutput.setFrameDetectedObj(detectedObjs);
 	        }
 
@@ -101,5 +118,4 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		return frameOutput;
 	}
 	
-
 }
