@@ -70,35 +70,24 @@ public class DBTextDetector extends ObjDetBasePlugin {
 			matOutput 	= aMatInput.clone();
 	        OpenCvUtil.removeAlphaChannel(matOutput);
 	        
+	        List<MatOfPoint> detections = new ArrayList<>();
 	        // Perform text detection
-	        MatOfRotatedRect rects = new MatOfRotatedRect();
-	        textDetector.detectTextRectangles(matOutput, rects);
+	        textDetector.detect(matOutput, detections);
 	        
-	        List<MatOfPoint> polygons = new ArrayList<>();
-	        
-	        List<RotatedRect> detections = rects.toList();
 	        if(detections.size()>0)
 	        {
-	        	FrameDetectedObj detectedObjs = new FrameDetectedObj();
-	        	
-		        // Draw detections on the image
-		        for (RotatedRect rotatedRect : detections) 
-		        {
-		        	//if(rotatedRect.size.area()<20)
-		        	//	continue;
-		        	
-		        	Point[] ptRect = new Point[4];
-		        	rotatedRect.points(ptRect);
-		        	
-		        	MatOfPoint pts = new MatOfPoint(ptRect);
-		            polygons.add(pts);
-		            
-		            detectedObjs.addDetectedObj(new DetectedObj(0, "text", pts, 1.0d));
-		        }
-		        if(ANNOTATE_OUTPUT_IMG && polygons.size()>0)
+		        // Draw de ections on the image
+		        if(ANNOTATE_OUTPUT_IMG)
 	            {
-	            	Imgproc.polylines(matOutput, polygons, true, new Scalar(0, 255, 0), 2);
+	            	Imgproc.polylines(matOutput, detections, true, new Scalar(0, 255, 0), 2);
 	            }
+		        
+		        //Create detected obj
+		        FrameDetectedObj detectedObjs = new FrameDetectedObj();
+		        for (MatOfPoint contour : detections) 
+		        {
+		            detectedObjs.addDetectedObj(new DetectedObj(0, "text", contour, 1.0d));
+		        }
 	        	frameOutput.setFrameDetectedObj(detectedObjs);
 	        }
 
