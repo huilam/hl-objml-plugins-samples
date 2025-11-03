@@ -25,7 +25,6 @@ import hl.objml2.plugin.MLPluginConfigProp;
 import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
 import hl.opencv.util.OpenCvFilters;
-import hl.opencv.util.OpenCvUtil;
 
 
 public class DBTextDetector extends ObjDetBasePlugin {
@@ -94,11 +93,17 @@ public class DBTextDetector extends ObjDetBasePlugin {
         	textRecog = new TextRecognitionModel(sRecogModelFPath);
         	textRecog.setVocabulary(listDict);
         	textRecog.setDecodeType("CTC-greedy");
+        	
+        	
+        	// crnn_cs.onnx 	(isSwapRB=false)
+        	// crnn_cs_CN.onnx  (isSwapRB=true);
+        	boolean isSwapRB = true;//(sRecogModelFPath.indexOf("CN.onnx")>-1);
+        	System.out.println("isSwapRB="+isSwapRB);
         	textRecog.setInputParams((
         			1.0 / 127.5), 
         			new Size(100, 32), 
-        			new Scalar(127.5, 127.5, 127.5));
-        	
+        			new Scalar(127.5, 127.5, 127.5),
+        			isSwapRB);
         }
         
 		return new ArrayList<Mat>();
@@ -131,23 +136,10 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		        // Draw detections on the image
 	        	List<MatOfPoint> contours = new ArrayList<>();
 	        	for (RotatedRect rect : rotatedRect.toList()) {
-	        	    String sLabel = null;
-		        	Mat matROI = null;
-		        	try{
-		        		matROI = getRotatedROI(aMatInput, rect);
-			        	if(!matROI.empty())
-			        	{
-			        		sLabel = textRecog.recognize(matROI);
-	System.out.println("sLabel-->"+sLabel);
-							frameOutput.putFrameOutputCustomObj("cropped_"+sLabel, matROI.clone());
-			        	}
-		        	}finally
-		        	{
-			        	if(matROI!=null)
-			        		matROI.release();
-		        	}
-		        	
+	        	    String sLabel = doImageRecog(matOutput, rect, frameOutput);
 	        	    //
+	        	    if(sLabel==null)
+	        	    	sLabel = "_UNKNOWN_";
 		        	Point[] pts = new Point[4];
 	        	    rect.points(pts); // get 4 corner points
 	        	    MatOfPoint contour = new MatOfPoint(pts);
@@ -178,8 +170,27 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		return frameOutput;
 	}
 	
+	private String doImageRecog(final Mat aInputMat, RotatedRect aRotatedRect, MLPluginFrameOutput aFrameDetectedObj)
+	{
+		String sLabel = null;
+		Mat matROI = null;
+    	try{
+    		matROI = getRotatedROI(aInputMat, aRotatedRect);
+        	if(!matROI.empty())
+        	{
+        		sLabel = textRecog.recognize(matROI);
+//System.out.println("sLabel-->"+sLabel);
+        		aFrameDetectedObj.putFrameOutputCustomObj("cropped_"+sLabel, matROI.clone());
+        	}
+    	}finally
+    	{
+        	if(matROI!=null)
+        		matROI.release();
+    	}
+    	return sLabel;
+	}
 	
-	public static Mat getRotatedROI(Mat src, RotatedRect rect) {
+	private static Mat getRotatedROI(Mat src, RotatedRect rect) {
 	    // Get the rotation matrix for the rect
 	    Mat rotationMatrix = Imgproc.getRotationMatrix2D(rect.center, rect.angle, 1.0);
 
@@ -189,7 +200,9 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	    Imgproc.warpAffine(src, rotated, rotationMatrix, size, Imgproc.INTER_CUBIC);
 
 	    // Now crop the upright region corresponding to the original rotated rect
-	    Size rectSize = rect.size;
+	    Size rectSize 	= rect.size;
+	    rectSize.width 	= rectSize.width + 10; //extra 10px
+	    rectSize.height = rectSize.height + 10; //extra 10px
 	    Rect roi = new Rect(
 	        (int)(rect.center.x - rectSize.width / 2),
 	        (int)(rect.center.y - rectSize.height / 2),
