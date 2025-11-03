@@ -191,29 +191,40 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	}
 	
 	private static Mat getRotatedROI(Mat src, RotatedRect rect) {
-	    // Get the rotation matrix for the rect
-	    Mat rotationMatrix = Imgproc.getRotationMatrix2D(rect.center, rect.angle, 1.0);
-
-	    // Compute the size of the rotated image
-	    Size size = src.size();
-	    Mat rotated = new Mat();
-	    Imgproc.warpAffine(src, rotated, rotationMatrix, size, Imgproc.INTER_CUBIC);
-
-	    // Now crop the upright region corresponding to the original rotated rect
-	    Size rectSize 	= rect.size;
-	    rectSize.width 	= rectSize.width + 10; //extra 10px
-	    rectSize.height = rectSize.height + 10; //extra 10px
-	    Rect roi = new Rect(
-	        (int)(rect.center.x - rectSize.width / 2),
-	        (int)(rect.center.y - rectSize.height / 2),
-	        (int)rectSize.width,
-	        (int)rectSize.height
-	    );
-
-	    // Ensure ROI is within image bounds
-	    roi = adjustRectToFit(roi, rotated.size());
-
-	    return new Mat(rotated, roi);
+		Mat rotationMatrix = null;
+		Mat rotated = new Mat();
+		try {
+		    // Get the rotation matrix for the rect
+		    rotationMatrix = Imgproc.getRotationMatrix2D(rect.center, rect.angle, 1.0);
+	
+		    // Compute the size of the rotated image
+		    Size size = src.size();
+		    rotated = new Mat();
+		    Imgproc.warpAffine(src, rotated, rotationMatrix, size, Imgproc.INTER_CUBIC);
+	
+		    // Now crop the upright region corresponding to the original rotated rect
+		    Size rectSize 	= rect.size;
+		    rectSize.width 	= rectSize.width + 10; //extra 10px
+		    rectSize.height = rectSize.height + 10; //extra 10px
+		    Rect roi = new Rect(
+		        (int)(rect.center.x - rectSize.width / 2),
+		        (int)(rect.center.y - rectSize.height / 2),
+		        (int)rectSize.width,
+		        (int)rectSize.height
+		    );
+	
+		    // Ensure ROI is within image bounds
+		    roi = adjustRectToFit(roi, rotated.size());
+		    return new Mat(rotated, roi);
+		}
+		finally
+		{
+			if(rotationMatrix!=null)
+				rotationMatrix.release();
+			
+			if(rotated!=null)
+				rotated.release();
+		}
 	}
 
 	private static Rect adjustRectToFit(Rect rect, Size size) {
