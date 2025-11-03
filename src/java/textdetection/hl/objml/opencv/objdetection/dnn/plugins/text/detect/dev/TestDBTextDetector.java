@@ -10,6 +10,7 @@ public class TestDBTextDetector extends BaseTester {
 	public static void main(String[] args)
 	{
 		BaseTester tester = new BaseTester();
+		tester.setIsAutoSaveOutputMatAsFile(true);
 		tester.setTestImageFolder(new File("./test/images/text").getAbsolutePath());
 		tester.testDetector(new DBTextDetector());
 	}
