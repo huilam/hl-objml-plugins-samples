@@ -179,8 +179,13 @@ public class DBTextDetector extends ObjDetBasePlugin {
         	if(!matROI.empty())
         	{
         		sLabel = textRecog.recognize(matROI);
+        		
+        		Rect rectBounding = aRotatedRect.boundingRect();
 //System.out.println("sLabel-->"+sLabel);
-        		aFrameDetectedObj.putFrameOutputCustomObj("cropped_"+sLabel, matROI.clone());
+        		aFrameDetectedObj.putFrameOutputCustomObj("cropped_"
+        				+rectBounding.x+"x"+rectBounding.y
+        				+"_"+sLabel, matROI.clone());
+        		
         	}
     	}finally
     	{
