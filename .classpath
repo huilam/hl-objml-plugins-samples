@@ -18,10 +18,10 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="lib/native"/>
-	<classpathentry kind="lib" path="lib/hl-common_jdk17_20250428-1009-09.jar"/>
 	<classpathentry kind="lib" path="lib/opencv-4120.jar"/>
 	<classpathentry kind="lib" path="lib/json-20250517.jar"/>
-	<classpathentry kind="lib" path="lib/hl-objml-plugin-framework_jdk17_20250915-1415-34.jar" sourcepath="/hl-objml-plugin-framework"/>
-	<classpathentry kind="lib" path="lib/hl-opencv_jdk17_20251005-1301-15.jar"/>
+	<classpathentry kind="lib" path="lib/hl-objml-plugin-framework_jdk17_20251103-1006-25.jar"/>
+	<classpathentry kind="lib" path="lib/hl-common_jdk17_20251103-1008-52.jar"/>
+	<classpathentry kind="lib" path="lib/hl-opencv_jdk17_20251103-1012-19.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

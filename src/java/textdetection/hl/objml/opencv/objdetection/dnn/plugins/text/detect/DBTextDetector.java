@@ -1,24 +1,30 @@
 package hl.objml.opencv.objdetection.dnn.plugins.text.detect;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfRotatedRect;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Net;
 import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextDetectionModel_DB;
+import org.opencv.dnn.TextRecognitionModel;
 import org.opencv.imgproc.Imgproc;
 
+import hl.common.FileUtil;
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.FrameDetectedObj;
+import hl.objml2.plugin.MLPluginConfigProp;
 import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
+import hl.opencv.util.OpenCvFilters;
 import hl.opencv.util.OpenCvUtil;
 
 
@@ -26,14 +32,16 @@ public class DBTextDetector extends ObjDetBasePlugin {
 
 	private static boolean ANNOTATE_OUTPUT_IMG 	= true;
 	private TextDetectionModel textDetector 	= null;
+	private TextRecognitionModel textRecog 		= null;
 	
-
+	private final static String RECOG_PROP_PREFIX = "objml.mlmodel.detection.recognition";
+	
 	/**
 	 *  Model = https://docs.opencv.org/4.x/d4/d43/tutorial_dnn_text_spotting.html
 	 **/
 	
 	@Override
-    public List<Mat> doInference(Mat aMatInput, Net aDnnNet)
+    public List<Mat> doInference(final Mat aMatInput, Net aDnnNet)
 	{
 		File fileModel 	= new File(_model_filename);
                    
@@ -52,12 +60,52 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	        textDetector.setPreferableTarget(getDnnTarget());
 	    }
         
+        if(textRecog==null)
+        {
+        	MLPluginConfigProp config = getPluginProps();
+        	
+        	List<String> listDict = new ArrayList<String>();
+        	String sRecogModelFPath = 
+        		config.getProperty(RECOG_PROP_PREFIX+".model.filename", null);
+        	if(sRecogModelFPath!=null)
+        	{
+        		sRecogModelFPath = fileModel.getParentFile().getPath()+"/"+sRecogModelFPath;
+        		
+        		File fileRecogModel = new File(sRecogModelFPath);
+        		if(fileRecogModel!=null && fileRecogModel.isFile())
+        		{
+        			String sDictFilePath = fileModel.getParentFile().getPath()+"/"+
+                			config.getProperty(RECOG_PROP_PREFIX+".dict.filename", null);
+        			
+        			File fileDict = new File(sDictFilePath);
+        			if(fileDict!=null && fileDict.isFile())
+        			{
+        				try {
+							listDict = FileUtil.loadContentAsList(fileDict);
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+        			}
+        		}
+        		
+        	}
+        	
+        	textRecog = new TextRecognitionModel(sRecogModelFPath);
+        	textRecog.setVocabulary(listDict);
+        	textRecog.setDecodeType("CTC-greedy");
+        	textRecog.setInputParams((
+        			1.0 / 127.5), 
+        			new Size(100, 32), 
+        			new Scalar(127.5, 127.5, 127.5));
+        	
+        }
         
 		return new ArrayList<Mat>();
 	}
 	
 	@Override
-    public MLPluginFrameOutput parseDetections(Mat aMatInput, List<Mat> aInferenceOutputMat)
+    public MLPluginFrameOutput parseDetections(final Mat aMatInput, List<Mat> aInferenceOutputMat)
 	{
 		MLPluginFrameOutput frameOutput = new MLPluginFrameOutput();
 		
@@ -68,25 +116,48 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		
 		try {
 			matOutput 	= aMatInput.clone();
-	        OpenCvUtil.removeAlphaChannel(matOutput);
+			
+	        OpenCvFilters.grayscale(matOutput);
 	        
-	        List<MatOfPoint> detections = new ArrayList<>();
+	        MatOfRotatedRect rotatedRect = new MatOfRotatedRect();
 	        // Perform text detection
-	        textDetector.detect(matOutput, detections);
+	        textDetector.detectTextRectangles(matOutput, rotatedRect);
 	        
-	        if(detections.size()>0)
+	        if(!rotatedRect.empty())
 	        {
-		        // Draw de ections on the image
-		        if(ANNOTATE_OUTPUT_IMG)
-	            {
-	            	Imgproc.polylines(matOutput, detections, true, new Scalar(0, 255, 0), 2);
-	            }
-		        
-		        //Create detected obj
+	        	//Create detected obj
 		        FrameDetectedObj detectedObjs = new FrameDetectedObj();
-		        for (MatOfPoint contour : detections) 
+		        
+		        // Draw detections on the image
+	        	List<MatOfPoint> contours = new ArrayList<>();
+	        	for (RotatedRect rect : rotatedRect.toList()) {
+	        	    String sLabel = null;
+		        	Mat matROI = null;
+		        	try{
+		        		matROI = getRotatedROI(aMatInput, rect);
+			        	if(!matROI.empty())
+			        	{
+			        		sLabel = textRecog.recognize(matROI);
+	System.out.println("sLabel-->"+sLabel);
+							frameOutput.putFrameOutputCustomObj("cropped_"+sLabel, matROI);
+			        	}
+		        	}finally
+		        	{
+			        	if(matROI!=null)
+			        		matROI.release();
+		        	}
+		        	
+	        	    //
+		        	Point[] pts = new Point[4];
+	        	    rect.points(pts); // get 4 corner points
+	        	    MatOfPoint contour = new MatOfPoint(pts);
+	        	    contours.add(contour);
+		        	detectedObjs.addDetectedObj(new DetectedObj(0, sLabel, contour, 1.0d));
+	        	}
+	        	
+	        	if(ANNOTATE_OUTPUT_IMG)
 		        {
-		            detectedObjs.addDetectedObj(new DetectedObj(0, "text", contour, 1.0d));
+	        		 Imgproc.polylines(matOutput, contours, true, new Scalar(0, 255, 0), 2);
 		        }
 	        	frameOutput.setFrameDetectedObj(detectedObjs);
 	        }
@@ -107,4 +178,36 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		return frameOutput;
 	}
 	
+	
+	public static Mat getRotatedROI(Mat src, RotatedRect rect) {
+	    // Get the rotation matrix for the rect
+	    Mat rotationMatrix = Imgproc.getRotationMatrix2D(rect.center, rect.angle, 1.0);
+
+	    // Compute the size of the rotated image
+	    Size size = src.size();
+	    Mat rotated = new Mat();
+	    Imgproc.warpAffine(src, rotated, rotationMatrix, size, Imgproc.INTER_CUBIC);
+
+	    // Now crop the upright region corresponding to the original rotated rect
+	    Size rectSize = rect.size;
+	    Rect roi = new Rect(
+	        (int)(rect.center.x - rectSize.width / 2),
+	        (int)(rect.center.y - rectSize.height / 2),
+	        (int)rectSize.width,
+	        (int)rectSize.height
+	    );
+
+	    // Ensure ROI is within image bounds
+	    roi = adjustRectToFit(roi, rotated.size());
+
+	    return new Mat(rotated, roi);
+	}
+
+	private static Rect adjustRectToFit(Rect rect, Size size) {
+	    int x = Math.max(rect.x, 0);
+	    int y = Math.max(rect.y, 0);
+	    int width = Math.min(rect.width, (int)size.width - x);
+	    int height = Math.min(rect.height, (int)size.height - y);
+	    return new Rect(x, y, width, height);
+	}
 }
