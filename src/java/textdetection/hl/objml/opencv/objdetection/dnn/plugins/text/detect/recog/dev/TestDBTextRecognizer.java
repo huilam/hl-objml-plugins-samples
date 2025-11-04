@@ -1,8 +1,8 @@
-package hl.objml.opencv.objdetection.dnn.plugins.text.recog.dev;
+package hl.objml.opencv.objdetection.dnn.plugins.text.detect.recog.dev;
 
 import java.io.File;
 
-import hl.objml.opencv.objdetection.dnn.plugins.text.recog.DBTextRecognizer;
+import hl.objml.opencv.objdetection.dnn.plugins.text.detect.recog.DBTextRecognizer;
 import hl.objml2.plugin.test.BaseTester;
 
 public class TestDBTextRecognizer extends BaseTester {

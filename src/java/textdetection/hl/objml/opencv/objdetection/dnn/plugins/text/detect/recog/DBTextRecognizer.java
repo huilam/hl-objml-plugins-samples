@@ -1,4 +1,4 @@
-package hl.objml.opencv.objdetection.dnn.plugins.text.recog;
+package hl.objml.opencv.objdetection.dnn.plugins.text.detect.recog;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -29,7 +29,7 @@ public class DBTextRecognizer extends ObjDetBasePlugin {
 	private static boolean ANNOTATE_OUTPUT_IMG 	= true;
 	private TextRecognitionModel textRecog 		= null;
 	
-	private DBTextDetector textDetectorPlugin 	= new DBTextDetector();
+	private DBTextDetector textDetectorPlugin 	= null;
 	private boolean isSkipTextDetection 		= false;
 	
 	/**
