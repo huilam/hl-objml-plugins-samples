@@ -13,12 +13,10 @@ import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Net;
-import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextRecognitionModel;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml.opencv.objdetection.dnn.plugins.text.detect.DBTextDetector;
-import hl.objml2.api.ObjMLApi;
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.MLPluginFrameOutput;

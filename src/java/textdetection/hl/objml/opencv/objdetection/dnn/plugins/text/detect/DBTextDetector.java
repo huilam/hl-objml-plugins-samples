@@ -1,32 +1,24 @@
 package hl.objml.opencv.objdetection.dnn.plugins.text.detect;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfRotatedRect;
 import org.opencv.core.Point;
-import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Net;
 import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextDetectionModel_DB;
-import org.opencv.dnn.TextRecognitionModel;
 import org.opencv.imgproc.Imgproc;
 
-import hl.common.FileUtil;
 import hl.objml.opencv.objdetection.dnn.plugins.text.recog.DBTextRecognizer;
-import hl.objml.opencv.objdetection.dnn.plugins.text.recog.dev.TestDBTextRecognizer;
-import hl.objml2.api.ObjMLApi;
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.FrameDetectedObj;
-import hl.objml2.plugin.MLPluginConfigProp;
 import hl.objml2.plugin.MLPluginFrameOutput;
-import hl.objml2.plugin.MLPluginMgr;
 import hl.objml2.plugin.ObjDetBasePlugin;
 import hl.opencv.util.OpenCvFilters;
 
