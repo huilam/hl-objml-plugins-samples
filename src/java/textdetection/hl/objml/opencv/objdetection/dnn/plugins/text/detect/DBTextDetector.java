@@ -7,9 +7,9 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfRotatedRect;
 import org.opencv.core.Point;
+import org.opencv.core.Rect;
 import org.opencv.core.RotatedRect;
 import org.opencv.core.Scalar;
-import org.opencv.core.Size;
 import org.opencv.dnn.Net;
 import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextDetectionModel_DB;
@@ -25,6 +25,7 @@ import hl.opencv.util.OpenCvFilters;
 public class DBTextDetector extends ObjDetBasePlugin {
 
 	private static boolean ANNOTATE_OUTPUT_IMG 	= true;
+	private static boolean isForceGrayScale		= true;
 	private TextDetectionModel textDetector 	= null;
 	
 	/**
@@ -53,11 +54,8 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		Mat matOutput 	= null;
 		
 		try {
-			matOutput 	= aMatInput.clone();
-			
-	        OpenCvFilters.grayscale(matOutput);
 	        // Perform text detection
-	        MatOfRotatedRect rotatedRect = getTextDetection(matOutput);
+	        MatOfRotatedRect rotatedRect = getTextDetection(aMatInput);
 	        
 	        if(!rotatedRect.empty())
 	        {
@@ -66,9 +64,15 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		        
 		        // Draw detections on the image
 	        	List<MatOfPoint> contours = new ArrayList<>();
-	        	for (RotatedRect rect : rotatedRect.toList()) {
+	        	for (RotatedRect rRect : rotatedRect.toList()) {
 		        	Point[] pts = new Point[4];
-	        	    rect.points(pts); // get 4 corner points
+		        	rRect.points(pts); // get 4 corner points
+	        	    
+		        	/**
+		        	Rect rect = rRect.boundingRect();
+		        	pts = rectToPoints(rect);
+		        	**/
+	        	    
 	        	    MatOfPoint contour = new MatOfPoint(pts);
 	        	    contours.add(contour);
 		        	detectedObjs.addDetectedObj(new DetectedObj(0, "", contour, 1.0d));
@@ -76,6 +80,7 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	        	
 	        	if(ANNOTATE_OUTPUT_IMG)
 		        {
+	        		 matOutput = aMatInput.clone();
 	        		 Imgproc.polylines(matOutput, contours, true, new Scalar(0, 255, 0), 2);
 		        }
 	        	frameOutput.setFrameDetectedObj(detectedObjs);
@@ -97,6 +102,14 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		return frameOutput;
 	}
 	
+	private static Point[] rectToPoints(Rect rect) {
+		Point[] pts = new Point[4];
+		pts[0]=new Point(rect.x, rect.y); // Top-left
+		pts[1]=new Point(rect.x + rect.width, rect.y); // Top-right
+		pts[2]=new Point(rect.x + rect.width, rect.y + rect.height); // Bottom-right
+		pts[3]=new Point(rect.x, rect.y + rect.height); // Bottom-left
+        return pts;
+    }
 	
 	public TextDetectionModel initTextDetector()
 	{
@@ -108,11 +121,11 @@ public class DBTextDetector extends ObjDetBasePlugin {
 			this.textDetector = new TextDetectionModel_DB(fileModel.getAbsolutePath());
         	
             // Set the input parameters
-            Size inputSize = this.getImageInputSize();
-            
-            Scalar mean = new Scalar(122.67891434, 116.66876762, 104.00698793);
-            this.textDetector.setInputParams(1.0 / 255.0, inputSize, mean, true);
-            this.textDetector.setInputCrop(true);
+            //this.textDetector.setInputParams(1.0 / 255.0, inputSize, mean, true);
+            this.textDetector.setInputSize(this.getImageInputSize());
+            this.textDetector.setInputScale(new Scalar(1.0 / 255.0));
+            this.textDetector.setInputMean(new Scalar(122.67891434, 116.66876762, 104.00698793));
+            this.textDetector.setInputCrop(false);
             
             this.textDetector.setPreferableBackend(getDnnBackend());
             this.textDetector.setPreferableTarget(getDnnTarget());
@@ -123,12 +136,25 @@ public class DBTextDetector extends ObjDetBasePlugin {
 	
 	public MatOfRotatedRect getTextDetection(final Mat aMatInput)
 	{
-		MatOfRotatedRect rotatedRect = new MatOfRotatedRect();
-		if(this.textDetector==null)
+		Mat matDetect = null;
+		try {
+			matDetect = aMatInput.clone();
+			
+			if(isForceGrayScale)
+				OpenCvFilters.grayscale(matDetect);
+			
+			MatOfRotatedRect rotatedRect = new MatOfRotatedRect();
+			if(this.textDetector==null)
+			{
+				initTextDetector();
+			}
+			textDetector.detectTextRectangles(matDetect, rotatedRect);
+			
+			return rotatedRect;
+		}finally
 		{
-			initTextDetector();
+			if(matDetect!=null)
+				matDetect.release();
 		}
-		textDetector.detectTextRectangles(aMatInput, rotatedRect);
-		return rotatedRect;
 	}
 }

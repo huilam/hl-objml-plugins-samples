@@ -81,10 +81,8 @@ public class DBTextRecognizer extends ObjDetBasePlugin {
 		
 		try {
 			matOutput 	= aMatInput.clone();
-			
-	        OpenCvFilters.grayscale(matOutput);
 	        
-	        MatOfRotatedRect rotatedRect = doTextDetection(aMatInput);
+	        MatOfRotatedRect rotatedRect = doTextDetection(matOutput);
 	        
 	        if(!rotatedRect.empty())
 	        {
