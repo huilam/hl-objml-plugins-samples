@@ -1,0 +1,13 @@
+<project name="textdetection" default="jar" basedir=".">
+	<import file="./base_antbuild.xml"/>
+	
+	<property name="mlmodel.module" value="recog"/>
+	<property name="exclude.packages" value="**/detect/" />
+	
+	<property name="mlmodel.path" value="${src}/hl/objml/opencv/objdetection/dnn/plugins/text/${mlmodel.module}"/>
+	<property name="jar_suffix" value="_${mlmodel.module}"/>
+
+	<property name="mlmodel.download.url" value="https://huggingface.co/huilam/hl-objml-plugins-samples/blob/main/textdetection/recog.crnn_cs.onnx?download=true"/>
+	<property name="mlmodel.filename" value="${mlmodel.path}/recog.crnn_cs.onnx"/>
+
+</project>

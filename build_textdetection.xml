@@ -1,7 +1,13 @@
 <project name="textdetection" default="jar" basedir=".">
 	<import file="./base_antbuild.xml"/>
 	
+	<property name="mlmodel.module" value="detect"/>
+	<property name="exclude.packages" value="**/recog/" />
+	
+	<property name="mlmodel.path" value="${src}/hl/objml/opencv/objdetection/dnn/plugins/text/${mlmodel.module}"/>
+	<property name="jar_suffix" value="_${mlmodel.module}"/>
+	
 	<property name="mlmodel.download.url" value="https://huggingface.co/huilam/hl-objml-plugins-samples/resolve/main/textdetection/DB_TD500_resnet50.onnx?download=true"/>
-	<property name="mlmodel.filename" value="src/java/textdetection/hl/objml/opencv/objdetection/dnn/plugins/text/detect/DB_TD500_resnet50.onnx"/>
+	<property name="mlmodel.filename" value="${mlmodel.path}/DB_TD500_resnet50.onnx"/>
 
 </project>
