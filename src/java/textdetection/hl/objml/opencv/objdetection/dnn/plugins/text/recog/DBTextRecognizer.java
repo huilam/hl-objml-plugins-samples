@@ -157,8 +157,6 @@ public class DBTextRecognizer extends ObjDetBasePlugin {
 		}
 		else
 		{
-			System.out.println("textDetectorPlugin="+textDetectorPlugin);
-			
 			matRotatedRect = textDetectorPlugin.getTextDetection(aInputMat);
 		}
 		
