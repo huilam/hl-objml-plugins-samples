@@ -15,7 +15,6 @@ import org.opencv.dnn.TextDetectionModel;
 import org.opencv.dnn.TextDetectionModel_DB;
 import org.opencv.imgproc.Imgproc;
 
-import hl.objml.opencv.objdetection.dnn.plugins.text.recog.DBTextRecognizer;
 import hl.objml2.common.DetectedObj;
 import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.MLPluginFrameOutput;
@@ -27,7 +26,6 @@ public class DBTextDetector extends ObjDetBasePlugin {
 
 	private static boolean ANNOTATE_OUTPUT_IMG 	= true;
 	private TextDetectionModel textDetector 	= null;
-	private static DBTextRecognizer textRecognizer = null;
 	
 	/**
 	 *  Model = https://docs.opencv.org/4.x/d4/d43/tutorial_dnn_text_spotting.html
@@ -69,15 +67,11 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		        // Draw detections on the image
 	        	List<MatOfPoint> contours = new ArrayList<>();
 	        	for (RotatedRect rect : rotatedRect.toList()) {
-	        	    String sLabel = doImageRecog(matOutput, rect, frameOutput);
-	        	    //
-	        	    if(sLabel==null)
-	        	    	sLabel = "_NONE_";
 		        	Point[] pts = new Point[4];
 	        	    rect.points(pts); // get 4 corner points
 	        	    MatOfPoint contour = new MatOfPoint(pts);
 	        	    contours.add(contour);
-		        	detectedObjs.addDetectedObj(new DetectedObj(0, sLabel, contour, 1.0d));
+		        	detectedObjs.addDetectedObj(new DetectedObj(0, "", contour, 1.0d));
 	        	}
 	        	
 	        	if(ANNOTATE_OUTPUT_IMG)
@@ -137,24 +131,4 @@ public class DBTextDetector extends ObjDetBasePlugin {
 		textDetector.detectTextRectangles(aMatInput, rotatedRect);
 		return rotatedRect;
 	}
-	
-	private String doImageRecog(final Mat aInputMat, RotatedRect aRotatedRect, MLPluginFrameOutput aFrameDetectedObj)
-	{
-		String sLabel = null;
-		if(textRecognizer!=null)
-		{
-			if(textRecognizer.isPluginOK())
-			{
-				sLabel = "_UNKNOWN_";
-			}
-		}
-    	return sLabel;
-	}
-	
-	
-	public void setDBTextRecognizer(DBTextRecognizer aTextRecognizer)
-	{
-		textRecognizer = aTextRecognizer;
-	}
-	
 }
