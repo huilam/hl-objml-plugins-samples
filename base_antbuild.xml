@@ -4,7 +4,7 @@
 	<property name="build" location="build/${ant.project.name}"/>
 	<property name="lib" location="lib"/>
 	<property name="releases" location="releases"/>
-	<property name="jdk.ver" value="17"/>
+	<property name="jdk.ver" value="21"/>
 	
 	<tstamp>
 	    <format property="buildno" pattern="yyyyMMdd-HHmm-ss"/>
