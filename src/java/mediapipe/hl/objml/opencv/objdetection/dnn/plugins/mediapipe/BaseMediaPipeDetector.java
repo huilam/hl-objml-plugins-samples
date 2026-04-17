@@ -55,6 +55,8 @@ public class BaseMediaPipeDetector extends ObjDetDnnBasePlugin {
 		} 
 		finally
 		{
+			if(matInputImg!=null)
+				matInputImg.release();
 			if(matDnnImg!=null)
 				matDnnImg.release();
 		}
