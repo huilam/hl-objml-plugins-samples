@@ -58,6 +58,8 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
 		} 
 		finally
 		{
+			if(matInputImg!=null)
+				matInputImg.release();
 			if(matDnnImg!=null)
 				matDnnImg.release();
 		}
@@ -104,6 +106,8 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
 	private static Mat doInferencePreProcess(Mat aMatInput, Size sizeInput, 
 			boolean isApplyImgPadding, boolean isSwapRBChannel)
 	{
+		Mat matProcessed = aMatInput;
+		
 		if(isApplyImgPadding)
 		{
 			Mat matPaddedImg = null;
@@ -115,7 +119,7 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
 				matROI = matPaddedImg.submat(0,aMatInput.rows(),0,aMatInput.cols());
 				aMatInput.copyTo(matROI);
 				
-				aMatInput = matPaddedImg.clone();
+				matProcessed = matPaddedImg.clone();
 			}
 			finally
 			{
@@ -129,10 +133,10 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
 		// Convert from BGR to RGB
 		if(isSwapRBChannel)
 		{
-			Imgproc.cvtColor(aMatInput, aMatInput, Imgproc.COLOR_BGR2RGB);
+			Imgproc.cvtColor(matProcessed, matProcessed, Imgproc.COLOR_BGR2RGB);
 		}
 
-		return Dnn.blobFromImage(aMatInput, 1.0 / 255.0, sizeInput, Scalar.all(0), true, false);		
+		return Dnn.blobFromImage(matProcessed, 1.0 / 255.0, sizeInput, Scalar.all(0), true, false);		
 	}
 
 	private void decodePredictions(
@@ -155,7 +159,15 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
         for (int i = 0; i < numKeypoints; i++) {
             // Extract the i-th channel (heatmap)
             Mat heatmap = new Mat();
-            output.row(0).col(i).reshape(1, height).copyTo(heatmap);
+            Mat matRow = output.row(0);
+            Mat matCol = matRow.col(i);
+            Mat matReshaped = matCol.reshape(1, height);
+            matReshaped.copyTo(heatmap);
+            
+            // Release intermediate Mat objects
+            matReshaped.release();
+            matCol.release();
+            matRow.release();
 
             // Find the peak point in the heatmap
             Core.MinMaxLocResult minMaxLocResult = Core.minMaxLoc(heatmap);
@@ -173,6 +185,8 @@ public class VitPoseDetector extends ObjDetDnnBasePlugin {
                 aDetectedObj.add(obj);
             }
             
+            // Release the heatmap Mat object
+            heatmap.release();
         }
 		
 	}
