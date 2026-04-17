@@ -64,6 +64,7 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
 		aDnnNet.setInput(matDnnInput);
 		List<Mat> listOutput = new ArrayList<>();
 		aDnnNet.forward(listOutput, aDnnNet.getUnconnectedOutLayersNames());
+		matDnnInput.release();  // Release native memory
 		return listOutput;
 	}
 	
@@ -155,12 +156,13 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
         double scaleY = (getImageInputSize().height / iHeight) * aHRatio;	    
         
 	    // Reshape the heatmap to (17 x 480 x 320)
-	    matHeatmap = matHeatmap.reshape(1, new int[]{iKpCount, iHeight, iWidth});
+	    Mat matHeatmapReshaped = matHeatmap.reshape(1, new int[]{iKpCount, iHeight, iWidth});
 	    
 	    // Loop through each keypoint type (e.g., nose, left_eye, right_eye, etc.)
 	    for (int i = 0; i < iKpCount; i++) {
 	        // Extract the ith keypoint's heatmap
-	        Mat heatmap = matHeatmap.row(i).reshape(1, iHeight); // Shape becomes 480x320
+	        Mat heatmapRow = matHeatmapReshaped.row(i);
+	        Mat heatmap = heatmapRow.reshape(1, iHeight); // Shape becomes 480x320
 
 	        // Find all local maxima as potential keypoints for this keypoint type
 	        List<Point> keypointCandidates = findLocalMaxima(heatmap, getConfidenceThreshold());
@@ -195,7 +197,15 @@ public class HigherHRNetPoseDetector extends ObjDetDnnBasePlugin {
                 obj.setObj_trackingid(String.valueOf(dKpTagValue));
                 frameObjs.addDetectedObj(obj);
 	        }
+	        
+	        // Release intermediate Mat objects to prevent memory leaks
+	        heatmap.release();
+	        heatmapRow.release();
 	    }
+	    
+	    // Release the reshaped heatmap
+	    matHeatmapReshaped.release();
+	    
 		return frameObjs;
 	}
 
