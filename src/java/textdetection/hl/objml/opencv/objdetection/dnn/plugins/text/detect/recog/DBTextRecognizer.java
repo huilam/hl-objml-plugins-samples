@@ -14,6 +14,7 @@ import org.opencv.core.Scalar;
 import org.opencv.core.Size;
 import org.opencv.dnn.Net;
 import org.opencv.dnn.TextRecognitionModel;
+import org.opencv.geometry.Geometry;
 import org.opencv.imgproc.Imgproc;
 
 import hl.objml.opencv.objdetection.dnn.plugins.text.detect.DBTextDetector;
@@ -21,7 +22,6 @@ import hl.objml2.common.DetectedObj;
 import hl.objml2.common.FrameDetectedObj;
 import hl.objml2.plugin.MLPluginFrameOutput;
 import hl.objml2.plugin.ObjDetBasePlugin;
-import hl.opencv.util.OpenCvFilters;
 
 
 public class DBTextRecognizer extends ObjDetBasePlugin {
@@ -190,7 +190,7 @@ public class DBTextRecognizer extends ObjDetBasePlugin {
 		Mat rotated = new Mat();
 		try {
 		    // Get the rotation matrix for the rect
-		    rotationMatrix = Imgproc.getRotationMatrix2D(rect.center, rect.angle, 1.0);
+		    rotationMatrix = Geometry.getRotationMatrix2D(rect.center, rect.angle, 1.0);
 	
 		    // Compute the size of the rotated image
 		    Size size = src.size();

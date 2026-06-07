@@ -4,7 +4,8 @@
 	<property name="build" location="build/${ant.project.name}"/>
 	<property name="lib" location="lib"/>
 	<property name="releases" location="releases"/>
-	<property name="jdk.ver" value="21"/>
+	<property name="jdk.ver" value="25"/>
+	<property name="opencv.ver" value="4"/>
 	
 	<tstamp>
 	    <format property="buildno" pattern="yyyyMMdd-HHmm-ss"/>
@@ -31,7 +32,7 @@
 		</copydir>
 		
 		
-		<jar jarfile="${build}/hl-objml-plugin_${ant.project.name}${jar_suffix}_jdk${jdk.ver}_${buildno}.jar" basedir="${build}">
+		<jar jarfile="${build}/hl-objml-plugin_${ant.project.name}${jar_suffix}_cv${opencv.ver}_jdk${jdk.ver}_${buildno}.jar" basedir="${build}">
 			<include name="**/*.*"/>
 			<exclude name="${exclude.packages}"/>
 			<include name="version/${ant.project.name}_${buildno}"/>
@@ -79,6 +80,7 @@
 	<path id="compile.classpath">
 		<fileset dir="${lib}">
 			<include name="*.jar" />
+			<include name="opencv/cv${opencv.ver}/**/*.jar" />
 		</fileset>
 	</path>
 </project>

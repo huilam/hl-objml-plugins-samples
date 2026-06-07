@@ -17,11 +17,13 @@
 			<attribute name="module" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="lib/native"/>
 	<classpathentry kind="lib" path="lib/hl-common_jdk21_20251201-1433-22.jar"/>
-	<classpathentry kind="lib" path="lib/hl-objml-plugin-framework_jdk21_20251201-2315-53.jar"/>
-	<classpathentry kind="lib" path="lib/hl-opencv_jdk21_20251201-2317-37.jar"/>
 	<classpathentry kind="lib" path="lib/json-20260522.jar"/>
-	<classpathentry kind="lib" path="lib/opencv-4120.jar"/>
+	<classpathentry kind="lib" path="lib/cv4/native"/>
+	<classpathentry kind="lib" path="lib/cv5/native"/>
+	<classpathentry kind="lib" path="lib/cv4/hl-objml-plugin-framework_cv4_jdk25_20260607-2155-03.jar"/>
+	<classpathentry kind="lib" path="lib/cv4/hl-opencv_cv4_jdk25_20260607-2144-57.jar"/>
+	<classpathentry kind="lib" path="lib/cv4/hl-opencv_patch_cv4_jdk25_20260607-2228-56.jar"/>
+	<classpathentry kind="lib" path="lib/cv4/opencv-4120.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
