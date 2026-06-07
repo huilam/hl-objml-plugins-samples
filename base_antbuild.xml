@@ -80,7 +80,7 @@
 	<path id="compile.classpath">
 		<fileset dir="${lib}">
 			<include name="*.jar" />
-			<include name="opencv/cv${opencv.ver}/**/*.jar" />
+			<include name="opencv/cv${opencv.ver}/*.jar" />
 		</fileset>
 	</path>
 </project>
