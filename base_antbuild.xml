@@ -5,7 +5,7 @@
 	<property name="lib" location="lib"/>
 	<property name="releases" location="releases"/>
 	<property name="jdk.ver" value="25"/>
-	<property name="opencv.ver" value="4"/>
+	<property name="opencv.ver" value="5"/>
 	
 	<tstamp>
 	    <format property="buildno" pattern="yyyyMMdd-HHmm-ss"/>

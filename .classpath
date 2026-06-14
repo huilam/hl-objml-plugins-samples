@@ -14,10 +14,13 @@
 	<classpathentry kind="lib" path="lib/json-20260522.jar"/>
 	<classpathentry kind="lib" path="lib/opencv/cv4/native"/>
 	<classpathentry kind="lib" path="lib/opencv/cv5/native"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/opencv/cv4/hl-objml-plugin-framework_cv4_jdk25_20260607-2307-04.jar"/>
-	<classpathentry kind="lib" path="lib/opencv/cv4/hl-opencv_cv4_jdk25_20260607-2144-57.jar"/>
-	<classpathentry kind="lib" path="lib/opencv/cv4/hl-opencv_patch_cv4_jdk25_20260607-2228-56.jar"/>
-	<classpathentry kind="lib" path="lib/opencv/cv4/opencv-4120.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="lib/opencv/cv5/hl-objml-plugin-framework_cv5_jdk25_20260607-2154-30.jar"/>
+	<classpathentry kind="lib" path="lib/opencv/cv5/hl-opencv_cv5_jdk25_20260607-2145-19.jar"/>
+	<classpathentry kind="lib" path="lib/opencv/cv5/opencv-500.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>
